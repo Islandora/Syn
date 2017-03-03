@@ -5,3 +5,5 @@
 .gradle
 .idea
 /build
+*.ipr
+*.iws
