@@ -1,33 +1,20 @@
-# ![Alpaca](https://cloud.githubusercontent.com/assets/2371345/15409648/16c140b4-1dec-11e6-81d9-41929bc83b1f.png) Alpaca
-[![Build Status](https://travis-ci.org/Islandora-CLAW/Alpaca.svg?branch=master)](https://travis-ci.org/Islandora-CLAW/Alpaca)
+# Syn
+[![Build Status](https://travis-ci.org/jonathangreen/Syn.svg?branch=master)](https://travis-ci.org/jonathangreen/Syn)
 [![Contribution Guidelines](http://img.shields.io/badge/CONTRIBUTING-Guidelines-blue.svg)](./CONTRIBUTING.md)
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
-[![codecov](https://codecov.io/gh/Islandora-CLAW/Alpaca/branch/master/graph/badge.svg)](https://codecov.io/gh/Islandora-CLAW/Alpaca)
+[![codecov](https://codecov.io/gh/jonathangreen/Syn/branch/master/graph/badge.svg)](https://codecov.io/gh/jonathangreen/Syn)
 
 ## Description
 
-Event-driven middleware based on [Apache Camel](http://camel.apache.org/) that synchronizes a Fedora 4 repository with a Drupal instance.
+A tomcat valve that authenticates the JWT tokens created by Islandora in order to provide sessionless Authentication for Fedora 4.
 
 ## Building
 
 This project requires Java 8 and can be built with [Gradle](https://gradle.org). To build and test locally, use `./gradlew build`.
 
-## Sponsors
-
-* Discoverygarden
-* LYRASIS
-* York University
-* McMaster University
-* University of Prince Edward Island
-* University of Manitoba
-* University of Limerick
-* Simon Fraser University
-* PALS
-
 ## Maintainers
 
-* [Nick Ruest](https://github.com/ruebot)
-* [Daniel Lamb](https://github.com/dannylamb/)
+* [Jonathan Green](https://github.com/jonathangreen/)
 
 ## Development
 
