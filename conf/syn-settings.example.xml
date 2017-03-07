@@ -1,0 +1,25 @@
+<sites version='1'>
+  <!-- 
+  Sites can be specified with a Key inline, or with a reference to a key 
+  stored in a file. Both are shown in examples below.
+
+  The encoding parameter depends on what algorithm is chosen. 
+  HS256, HS384, HS512 support: plain and base64.
+  RS256, RS384, RS512 support: PEM.
+  -->
+
+  <!-- A site with an inline key -->
+  <site url='http://test.com' algorithm='HS256' encoding='plain'>
+my secret key
+  </site>
+
+  <!-- A site with a key stored in a file -->
+  <site url='http://test2.com' algorithm='HS256' encoding='base64' path='/somewhere/on/filesystem.key'/>
+
+  <!-- 
+  This is how you specify a default site, which will be chosen if no 
+  other site matches the JWT url claim
+  -->
+  <site algorithm='RS256' encoding='PEM' path='/somewhere/on/filesystem.key' default='true'/>
+
+</sites>
