@@ -1,4 +1,4 @@
-package ca.islandora.jwt.settings;
+package ca.islandora.syn.settings;
 
 import com.auth0.jwt.algorithms.Algorithm;
 import org.junit.Rule;

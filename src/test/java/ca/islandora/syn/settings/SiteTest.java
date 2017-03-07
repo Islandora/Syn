@@ -1,4 +1,4 @@
-package ca.islandora.jwt.settings;
+package ca.islandora.syn.settings;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -8,12 +8,12 @@ import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class JwtSiteTest {
-    JwtSite site;
+public class SiteTest {
+    Site site;
 
     @Before
     public void initializeSite() {
-        this.site = new JwtSite();
+        this.site = new Site();
     }
 
     @Test

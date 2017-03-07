@@ -1,7 +1,7 @@
-package ca.islandora.jwt.valve;
+package ca.islandora.syn.valve;
 
-import ca.islandora.jwt.settings.SettingsParser;
-import ca.islandora.jwt.token.JwtTokenVerifier;
+import ca.islandora.syn.settings.SettingsParser;
+import ca.islandora.syn.token.Verifier;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,10 +19,10 @@ import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 
-public class JwtTokenValve extends ValveBase {
+public class SynValve extends ValveBase {
 
-    private String pathname = "conf/jwt.xml";
-    private static final Log log = LogFactory.getLog(JwtTokenValve.class);
+    private String pathname = "conf/syn-settings.xml";
+    private static final Log log = LogFactory.getLog(SynValve.class);
     private Map<String, Algorithm> algorithmMap = null;
 
     @Override
@@ -64,13 +64,13 @@ public class JwtTokenValve extends ValveBase {
 
         // strip bearer off of the token
         token = tokenParts[1];
-        final JwtTokenVerifier tokenVerifier = JwtTokenVerifier.create(token);
-        if (tokenVerifier == null) {
+        final Verifier verifier = Verifier.create(token);
+        if (verifier == null) {
             log.info("Token rejected for not containing correct claims.");
             return false;
         }
 
-        final String url = tokenVerifier.getUrl();
+        final String url = verifier.getUrl();
         Algorithm algorithm = null;
         if (algorithmMap.containsKey(url)) {
             algorithm = algorithmMap.get(url);
@@ -83,10 +83,10 @@ public class JwtTokenValve extends ValveBase {
             return false;
         }
 
-        if (tokenVerifier.verify(algorithm)) {
+        if (verifier.verify(algorithm)) {
             log.info("Site verified: " + url);
-            setUserRolesFromToken(request, tokenVerifier);
-            request.setAuthType("ISLANDORA-JWT");
+            setUserRolesFromToken(request, verifier);
+            request.setAuthType("SYN");
             return true;
         } else {
             log.info("Token failed signature verification: " + url);
@@ -94,11 +94,11 @@ public class JwtTokenValve extends ValveBase {
         }
     }
 
-    private void setUserRolesFromToken(final Request request, final JwtTokenVerifier tokenVerifier) {
-        final List<String> roles = tokenVerifier.getRoles();
+    private void setUserRolesFromToken(final Request request, final Verifier verifier) {
+        final List<String> roles = verifier.getRoles();
         roles.add("Islandora");
-        roles.add(tokenVerifier.getUrl());
-        final String name = tokenVerifier.getName();
+        roles.add(verifier.getUrl());
+        final String name = verifier.getName();
         final GenericPrincipal principal = new GenericPrincipal(name, null, roles);
         request.setUserPrincipal(principal);
     }

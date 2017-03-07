@@ -1,6 +1,6 @@
-package ca.islandora.jwt.settings;
+package ca.islandora.syn.settings;
 
-public class JwtSite {
+public class Site {
     private String url = null;
     private String algorithm = null;
     private String key = null;

@@ -5,7 +5,7 @@ apply plugin: 'eclipse'
 apply plugin: 'checkstyle'
 
 jar {
-    baseName = 'islandora-jwt'
+    baseName = 'islandora-syn'
     version =  '0.1.0'
 }
 

@@ -1,16 +1,16 @@
-package ca.islandora.jwt.settings;
+package ca.islandora.syn.settings;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class JwtSites {
+public class Sites {
     private int version = -1;
-    private List<JwtSite> sites = new ArrayList<>();
+    private List<Site> sites = new ArrayList<>();
 
-    public void addSite(final JwtSite site) {
+    public void addSite(final Site site) {
         sites.add(site);
     }
-    public List<JwtSite> getSites() {
+    public List<Site> getSites() {
         return sites;
     }
 

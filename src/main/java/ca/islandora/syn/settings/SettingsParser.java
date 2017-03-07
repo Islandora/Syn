@@ -1,4 +1,4 @@
-package ca.islandora.jwt.settings;
+package ca.islandora.syn.settings;
 
 import com.auth0.jwt.algorithms.Algorithm;
 import org.apache.juli.logging.Log;
@@ -25,7 +25,7 @@ import java.io.InputStream;
 
 public final class SettingsParser {
     private static Digester digester = null;
-    private static Log log = LogFactory.getLog(JwtSite.class);
+    private static Log log = LogFactory.getLog(Site.class);
     private enum AlgorithmType {INVALID, RSA, HMAC}
 
     private SettingsParser() { }
@@ -34,12 +34,12 @@ public final class SettingsParser {
         if (digester == null) {
             digester = new Digester();
             digester.setValidating(false);
-            digester.addObjectCreate("sites", "ca.islandora.jwt.settings.JwtSites");
+            digester.addObjectCreate("sites", "ca.islandora.syn.settings.Sites");
             digester.addSetProperties("sites");
-            digester.addObjectCreate("sites/site", "ca.islandora.jwt.settings.JwtSite");
+            digester.addObjectCreate("sites/site", "ca.islandora.syn.settings.Site");
             digester.addSetProperties("sites/site");
             digester.addCallMethod("sites/site", "setKey", 0);
-            digester.addSetNext("sites/site", "addSite", "ca.islandora.jwt.settings.JwtSite");
+            digester.addSetNext("sites/site", "addSite", "ca.islandora.syn.settings.Site");
         }
         return digester;
     }
@@ -65,7 +65,7 @@ public final class SettingsParser {
         }
     }
 
-    private static boolean validateExpandPath(final JwtSite site) {
+    private static boolean validateExpandPath(final Site site) {
         File file = new File(site.getPath());
         if (!file.isAbsolute()) {
             file = new File(System.getProperty("catalina.base"), site.getPath());
@@ -78,7 +78,7 @@ public final class SettingsParser {
         return true;
     }
 
-    private static Algorithm getRsaAlgorithm(final JwtSite site) {
+    private static Algorithm getRsaAlgorithm(final Site site) {
         Reader publicKeyReader = null;
         RSAPublicKey publicKey = null;
 
@@ -126,7 +126,7 @@ public final class SettingsParser {
         }
     }
 
-    private static Algorithm getHmacAlgorithm(final JwtSite site) {
+    private static Algorithm getHmacAlgorithm(final Site site) {
         byte[] secret;
         byte[] secretRaw = null;
 
@@ -170,7 +170,7 @@ public final class SettingsParser {
 
     public static Map<String, Algorithm> getSiteAlgorithms(final InputStream settings) {
         final Map<String, Algorithm> algorithms = new HashMap<>();
-        JwtSites sites;
+        Sites sites;
 
         try {
             sites = getSitesObject(settings);
@@ -186,7 +186,7 @@ public final class SettingsParser {
 
         boolean defaultSet = false;
 
-        for (JwtSite site : sites.getSites()) {
+        for (Site site : sites.getSites()) {
             final boolean pathDefined = site.getPath() != null && !site.getPath().equalsIgnoreCase("");
             final boolean keyDefined = site.getKey() != null && !site.getKey().equalsIgnoreCase("");
 
@@ -236,8 +236,8 @@ public final class SettingsParser {
         return algorithms;
     }
 
-    static JwtSites getSitesObject(final InputStream settings)
+    static Sites getSitesObject(final InputStream settings)
             throws IOException, SAXException {
-        return (JwtSites) getDigester().parse(settings);
+        return (Sites) getDigester().parse(settings);
     }
 }

@@ -1,4 +1,4 @@
-package ca.islandora.jwt.settings;
+package ca.islandora.syn.settings;
 
 import org.junit.Test;
 
@@ -21,11 +21,11 @@ public class SettingsParserDigestTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final JwtSites settings = SettingsParser.getSitesObject(stream);
+        final Sites settings = SettingsParser.getSitesObject(stream);
         assertEquals(12, settings.getVersion());
         assertEquals(1, settings.getSites().size());
 
-        final JwtSite site = (JwtSite) settings.getSites().get(0);
+        final Site site = (Site) settings.getSites().get(0);
         assertEquals("RS384", site.getAlgorithm());
         assertEquals("http://test.com", site.getUrl());
         assertEquals("test/path.key", site.getPath());
@@ -46,11 +46,11 @@ public class SettingsParserDigestTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final JwtSites settings = SettingsParser.getSitesObject(stream);
+        final Sites settings = SettingsParser.getSitesObject(stream);
         assertEquals(-1, settings.getVersion());
         assertEquals(1, settings.getSites().size());
 
-        final JwtSite site = (JwtSite) settings.getSites().get(0);
+        final Site site = (Site) settings.getSites().get(0);
         assertEquals("RS384", site.getAlgorithm());
         assertEquals("http://test.com", site.getUrl());
         assertNull(site.getPath());
@@ -69,7 +69,7 @@ public class SettingsParserDigestTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final JwtSites settings = SettingsParser.getSitesObject(stream);
+        final Sites settings = SettingsParser.getSitesObject(stream);
         assertEquals(2, settings.getSites().size());
     }
 
@@ -82,7 +82,7 @@ public class SettingsParserDigestTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final JwtSites settings = SettingsParser.getSitesObject(stream);
+        final Sites settings = SettingsParser.getSitesObject(stream);
     }
 
     @Test
@@ -94,6 +94,6 @@ public class SettingsParserDigestTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final JwtSites settings = SettingsParser.getSitesObject(stream);
+        final Sites settings = SettingsParser.getSitesObject(stream);
     }
 }

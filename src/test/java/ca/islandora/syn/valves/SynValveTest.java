@@ -1,6 +1,6 @@
-package ca.islandora.jwt.valves;
+package ca.islandora.syn.valves;
 
-import ca.islandora.jwt.valve.JwtTokenValve;
+import ca.islandora.syn.valve.SynValve;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import org.apache.catalina.Container;
@@ -37,8 +37,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class JwtTokenValveTest {
-    private JwtTokenValve jwtValve;
+public class SynValveTest {
+    private SynValve synValve;
     private File settings;
 
     @Mock
@@ -67,10 +67,10 @@ public class JwtTokenValveTest {
         settings = temporaryFolder.newFile();
         createSettings(settings);
 
-        jwtValve = new JwtTokenValve();
-        jwtValve.setPathname(settings.getAbsolutePath());
-        jwtValve.setContainer(container);
-        jwtValve.setNext(nextValve);
+        synValve = new SynValve();
+        synValve.setPathname(settings.getAbsolutePath());
+        synValve.setContainer(container);
+        synValve.setNext(nextValve);
 
         when(container.getRealm()).thenReturn(realm);
         when(request.getContext()).thenReturn(context);
@@ -81,8 +81,8 @@ public class JwtTokenValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
                 .thenReturn(null);
 
-        jwtValve.start();
-        jwtValve.invoke(request, response);
+        synValve.start();
+        synValve.invoke(request, response);
 
         verify(nextValve).invoke(request, response);
     }
@@ -108,13 +108,13 @@ public class JwtTokenValveTest {
         when(request.getHeader("Authorization"))
                 .thenReturn(token);
 
-        jwtValve.start();
-        jwtValve.invoke(request, response);
+        synValve.start();
+        synValve.invoke(request, response);
 
         final InOrder inOrder = inOrder(request, nextValve);
         inOrder.verify(request).getHeader("Authorization");
         inOrder.verify(request).setUserPrincipal(argument.capture());
-        inOrder.verify(request).setAuthType("ISLANDORA-JWT");
+        inOrder.verify(request).setAuthType("SYN");
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("adminuser", argument.getValue().getName());
@@ -135,8 +135,8 @@ public class JwtTokenValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
                 .thenReturn(new SecurityConstraint[] { securityConstraint });
 
-        jwtValve.start();
-        jwtValve.invoke(request, response);
+        synValve.start();
+        synValve.invoke(request, response);
 
         verify(request).getHeader("Authorization");
         verify(response).sendError(401, "Token authentication failed.");
@@ -151,8 +151,8 @@ public class JwtTokenValveTest {
         when(request.getHeader("Authorization"))
                 .thenReturn("garbage");
 
-        jwtValve.start();
-        jwtValve.invoke(request, response);
+        synValve.start();
+        synValve.invoke(request, response);
 
         verify(request).getHeader("Authorization");
         verify(response).sendError(401, "Token authentication failed.");
@@ -167,8 +167,8 @@ public class JwtTokenValveTest {
         when(request.getHeader("Authorization"))
                 .thenReturn("killer bandit foo");
 
-        jwtValve.start();
-        jwtValve.invoke(request, response);
+        synValve.start();
+        synValve.invoke(request, response);
 
         verify(request).getHeader("Authorization");
         verify(response).sendError(401, "Token authentication failed.");
@@ -192,8 +192,8 @@ public class JwtTokenValveTest {
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token);
 
-        jwtValve.start();
-        jwtValve.invoke(request, response);
+        synValve.start();
+        synValve.invoke(request, response);
 
         verify(request).getHeader("Authorization");
         verify(response).sendError(401, "Token authentication failed.");
@@ -220,13 +220,13 @@ public class JwtTokenValveTest {
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token);
 
-        jwtValve.start();
-        jwtValve.invoke(request, response);
+        synValve.start();
+        synValve.invoke(request, response);
 
         final InOrder inOrder = inOrder(request, nextValve);
         inOrder.verify(request).getHeader("Authorization");
         inOrder.verify(request).setUserPrincipal(argument.capture());
-        inOrder.verify(request).setAuthType("ISLANDORA-JWT");
+        inOrder.verify(request).setAuthType("SYN");
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("normalUser", argument.getValue().getName());
@@ -265,8 +265,8 @@ public class JwtTokenValveTest {
         );
         Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
 
-        jwtValve.start();
-        jwtValve.invoke(request, response);
+        synValve.start();
+        synValve.invoke(request, response);
 
         verify(request).getHeader("Authorization");
         verify(response).sendError(401, "Token authentication failed.");

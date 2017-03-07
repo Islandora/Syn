@@ -1,4 +1,4 @@
-package ca.islandora.jwt.token;
+package ca.islandora.syn.token;
 
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
@@ -16,7 +16,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 
-public class JwtTokenVerifierTest {
+public class VerifierTest {
 
     private static String token;
 
@@ -30,7 +30,7 @@ public class JwtTokenVerifierTest {
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.none());
-        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final Verifier verifier = Verifier.create(token);
         assertEquals(1, verifier.getUid());
         assertEquals("admin", verifier.getName());
         assertEquals("http://test.com", verifier.getUrl());
@@ -46,14 +46,14 @@ public class JwtTokenVerifierTest {
                 .withClaim("name", "admin")
                 .withClaim("url", "http://test.com")
                 .sign(Algorithm.none());
-        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final Verifier verifier = Verifier.create(token);
         assertNull(verifier);
     }
 
     @Test
     public void testClaimsBad() {
         token = "gibberish";
-        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final Verifier verifier = Verifier.create(token);
         assertNull(verifier);
     }
 
@@ -68,7 +68,7 @@ public class JwtTokenVerifierTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.HMAC256("secret"));
 
-        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final Verifier verifier = Verifier.create(token);
         assertEquals(1, verifier.getUid());
         assertEquals("admin", verifier.getName());
         assertEquals("http://test.com", verifier.getUrl());
@@ -97,7 +97,7 @@ public class JwtTokenVerifierTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.RSA512(privateKey));
 
-        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final Verifier verifier = Verifier.create(token);
         assertEquals(1, verifier.getUid());
         assertEquals("admin", verifier.getName());
         assertEquals("http://test.com", verifier.getUrl());
@@ -121,7 +121,7 @@ public class JwtTokenVerifierTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().minusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.HMAC256("secret"));
 
-        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final Verifier verifier = Verifier.create(token);
         assertEquals(1, verifier.getUid());
         assertEquals("admin", verifier.getName());
         assertEquals("http://test.com", verifier.getUrl());
