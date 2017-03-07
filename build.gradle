@@ -3,6 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'checkstyle'
+apply plugin: 'jacoco'
 
 jar {
     baseName = 'islandora-syn'
@@ -31,4 +32,11 @@ dependencies {
 
     testCompile group: 'junit', name: 'junit', version:'4.12'
     testCompile group: 'org.mockito', name: 'mockito-core', version:'2.7.14'
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled false
+    }
 }
