@@ -3,21 +3,21 @@ package ca.islandora.jwt.settings;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JwtSites {
+class JwtSites {
     private int version = -1;
     private List<JwtSite> sites = new ArrayList<>();
 
-    public void addSite(JwtSite site) {
+    void addSite(final JwtSite site) {
         sites.add(site);
     }
-    public List<JwtSite> getSites() {
+    List<JwtSite> getSites() {
         return sites;
     }
 
-    public int getVersion() {
+    int getVersion() {
         return this.version;
     }
-    public void setVersion(int version) {
+    void setVersion(final int version) {
         this.version = version;
     }
 }

@@ -20,7 +20,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -33,36 +32,38 @@ import java.util.List;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JwtTokenValveTest {
-	private JwtTokenValve jwtValve;
-	private File settings;
+    private JwtTokenValve jwtValve;
+    private File settings;
 
-	@Mock
-	private Container container;
+    @Mock
+    private Container container;
 
-	@Mock
-	private Realm realm;
+    @Mock
+    private Realm realm;
 
-	@Mock
-	private Context context;
+    @Mock
+    private Context context;
 
-	@Mock
-	private Request request;
+    @Mock
+    private Request request;
 
-	@Mock
-	private Response response;
+    @Mock
+    private Response response;
 
-	@Mock
-	private Valve nextValve;
+    @Mock
+    private Valve nextValve;
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-	@Before
-	public void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         settings = temporaryFolder.newFile();
         createSettings(settings);
 
@@ -71,26 +72,26 @@ public class JwtTokenValveTest {
         jwtValve.setContainer(container);
         jwtValve.setNext(nextValve);
 
-		when(container.getRealm()).thenReturn(realm);
-		when(request.getContext()).thenReturn(context);
-	}
+        when(container.getRealm()).thenReturn(realm);
+        when(request.getContext()).thenReturn(context);
+    }
 
     @Test
-	public void shouldInvokeNextValveWithoutAuth() throws Exception {
-		when(realm.findSecurityConstraints(request, request.getContext()))
+    public void shouldInvokeNextValveWithoutAuth() throws Exception {
+        when(realm.findSecurityConstraints(request, request.getContext()))
                 .thenReturn(null);
 
-		jwtValve.start();
-		jwtValve.invoke(request, response);
+        jwtValve.start();
+        jwtValve.invoke(request, response);
 
-		verify(nextValve).invoke(request, response);
-	}
+        verify(nextValve).invoke(request, response);
+    }
 
     @Test
-	public void shouldPassAuth() throws Exception {
-        ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+    public void shouldPassAuth() throws Exception {
+        final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
-        String token = "Bearer " + JWT
+        final String token = "Bearer " + JWT
                 .create()
                 .withClaim("uid", 1)
                 .withClaim("name", "adminuser")
@@ -100,24 +101,24 @@ public class JwtTokenValveTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.HMAC256("secret"));
 
-		SecurityConstraint securityConstraint = new SecurityConstraint();
-		securityConstraint.setAuthConstraint(true);
-		when(realm.findSecurityConstraints(request, request.getContext()))
-				.thenReturn(new SecurityConstraint[] { securityConstraint });
-		when(request.getHeader("Authorization"))
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+                .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getHeader("Authorization"))
                 .thenReturn(token);
 
         jwtValve.start();
-		jwtValve.invoke(request, response);
+        jwtValve.invoke(request, response);
 
-        InOrder inOrder = inOrder(request, nextValve);
-		inOrder.verify(request).getHeader("Authorization");
-		inOrder.verify(request).setUserPrincipal(argument.capture());
-		inOrder.verify(request).setAuthType("ISLANDORA-JWT");
-		inOrder.verify(nextValve).invoke(request, response);
+        final InOrder inOrder = inOrder(request, nextValve);
+        inOrder.verify(request).getHeader("Authorization");
+        inOrder.verify(request).setUserPrincipal(argument.capture());
+        inOrder.verify(request).setAuthType("ISLANDORA-JWT");
+        inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("adminuser", argument.getValue().getName());
-        List<String> roles = Arrays.asList(argument.getValue().getRoles());
+        final List<String> roles = Arrays.asList(argument.getValue().getRoles());
         assertEquals(5, roles.size());
         assertTrue(roles.contains("role1"));
         assertTrue(roles.contains("role2"));
@@ -125,41 +126,41 @@ public class JwtTokenValveTest {
         assertTrue(roles.contains("Islandora"));
         assertTrue(roles.contains("http://test.com"));
         assertNull(argument.getValue().getPassword());
-	}
+    }
 
-	@Test
-	public void shouldFailAuthBecauseOfTokenNotSet() throws Exception {
-		SecurityConstraint securityConstraint = new SecurityConstraint();
-		securityConstraint.setAuthConstraint(true);
-		when(realm.findSecurityConstraints(request, request.getContext()))
-				.thenReturn(new SecurityConstraint[] { securityConstraint });
+    @Test
+    public void shouldFailAuthBecauseOfTokenNotSet() throws Exception {
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+                .thenReturn(new SecurityConstraint[] { securityConstraint });
 
         jwtValve.start();
-		jwtValve.invoke(request, response);
+        jwtValve.invoke(request, response);
 
-		verify(request).getHeader("Authorization");
-		verify(response).sendError(401, "Token authentication failed.");
-	}
+        verify(request).getHeader("Authorization");
+        verify(response).sendError(401, "Token authentication failed.");
+    }
 
-	@Test
-	public void shouldFailAuthBecauseOfTokenInvalid1() throws Exception {
-		SecurityConstraint securityConstraint = new SecurityConstraint();
-		securityConstraint.setAuthConstraint(true);
-		when(realm.findSecurityConstraints(request, request.getContext()))
-				.thenReturn(new SecurityConstraint[] { securityConstraint });
-		when(request.getHeader("Authorization"))
+    @Test
+    public void shouldFailAuthBecauseOfTokenInvalid1() throws Exception {
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+                .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getHeader("Authorization"))
                 .thenReturn("garbage");
 
         jwtValve.start();
-		jwtValve.invoke(request, response);
+        jwtValve.invoke(request, response);
 
-		verify(request).getHeader("Authorization");
-		verify(response).sendError(401, "Token authentication failed.");
-	}
+        verify(request).getHeader("Authorization");
+        verify(response).sendError(401, "Token authentication failed.");
+    }
 
     @Test
     public void shouldFailAuthBecauseOfTokenInvalid2() throws Exception {
-        SecurityConstraint securityConstraint = new SecurityConstraint();
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
         securityConstraint.setAuthConstraint(true);
         when(realm.findSecurityConstraints(request, request.getContext()))
                 .thenReturn(new SecurityConstraint[] { securityConstraint });
@@ -175,7 +176,7 @@ public class JwtTokenValveTest {
 
     @Test
     public void shouldFailTokenMissingUid() throws Exception {
-        String token = JWT
+        final String token = JWT
                 .create()
                 .withClaim("name", "adminuser")
                 .withClaim("url", "http://test.com")
@@ -184,7 +185,7 @@ public class JwtTokenValveTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.HMAC256("secret"));
 
-        SecurityConstraint securityConstraint = new SecurityConstraint();
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
         securityConstraint.setAuthConstraint(true);
         when(realm.findSecurityConstraints(request, request.getContext()))
                 .thenReturn(new SecurityConstraint[] { securityConstraint });
@@ -200,7 +201,7 @@ public class JwtTokenValveTest {
 
     @Test
     public void shouldPassAuthDefaultSite() throws Exception {
-        String token = JWT
+        final String token = JWT
                 .create()
                 .withClaim("uid", 1)
                 .withClaim("name", "normalUser")
@@ -210,9 +211,9 @@ public class JwtTokenValveTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.HMAC256("secret2"));
 
-        ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+        final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
-        SecurityConstraint securityConstraint = new SecurityConstraint();
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
         securityConstraint.setAuthConstraint(true);
         when(realm.findSecurityConstraints(request, request.getContext()))
                 .thenReturn(new SecurityConstraint[] { securityConstraint });
@@ -222,14 +223,14 @@ public class JwtTokenValveTest {
         jwtValve.start();
         jwtValve.invoke(request, response);
 
-        InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, nextValve);
         inOrder.verify(request).getHeader("Authorization");
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(request).setAuthType("ISLANDORA-JWT");
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("normalUser", argument.getValue().getName());
-        List<String> roles = Arrays.asList(argument.getValue().getRoles());
+        final List<String> roles = Arrays.asList(argument.getValue().getRoles());
         assertEquals(2, roles.size());
         assertTrue(roles.contains("Islandora"));
         assertTrue(roles.contains("http://test2.com"));
@@ -238,7 +239,7 @@ public class JwtTokenValveTest {
 
     @Test
     public void shouldFailAuthBecauseNoSiteMatch() throws Exception {
-        String token = JWT
+        final String token = JWT
                 .create()
                 .withClaim("uid", 1)
                 .withClaim("name", "normalUser")
@@ -248,14 +249,14 @@ public class JwtTokenValveTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.HMAC256("secret"));
 
-        SecurityConstraint securityConstraint = new SecurityConstraint();
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
         securityConstraint.setAuthConstraint(true);
         when(realm.findSecurityConstraints(request, request.getContext()))
                 .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token);
 
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='plain'>"
                 , "secret"
@@ -271,8 +272,8 @@ public class JwtTokenValveTest {
         verify(response).sendError(401, "Token authentication failed.");
     }
 
-	private void createSettings(File settingsFile) throws Exception {
-        String testXml = String.join("\n"
+    private void createSettings(final File settingsFile) throws Exception {
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='plain'>"
                 , "secret"

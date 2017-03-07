@@ -19,7 +19,7 @@ public class JwtSiteTest {
     @Test
     public void testSiteUrl() {
         assertNull(this.site.getUrl());
-        String testVal = "test";
+        final String testVal = "test";
         this.site.setUrl(testVal);
         assertEquals(testVal, this.site.getUrl());
     }
@@ -27,7 +27,7 @@ public class JwtSiteTest {
     @Test
     public void testSiteAlgorithm() {
         assertNull(this.site.getAlgorithm());
-        String testVal = "test";
+        final String testVal = "test";
         this.site.setAlgorithm(testVal);
         assertEquals(testVal, this.site.getAlgorithm());
     }
@@ -35,7 +35,7 @@ public class JwtSiteTest {
     @Test
     public void testSiteKey() {
         assertNull(this.site.getKey());
-        String testVal = "test";
+        final String testVal = "test";
         this.site.setKey(testVal);
         assertEquals(testVal, this.site.getKey());
     }
@@ -43,7 +43,7 @@ public class JwtSiteTest {
     @Test
     public void testSitePath() {
         assertNull(this.site.getPath());
-        String testVal = "test";
+        final String testVal = "test";
         this.site.setPath(testVal);
         assertEquals(testVal, this.site.getPath());
     }
@@ -51,7 +51,7 @@ public class JwtSiteTest {
     @Test
     public void testSiteEncoding() {
         assertNull(this.site.getEncoding());
-        String testVal = "test";
+        final String testVal = "test";
         this.site.setEncoding(testVal);
         assertEquals(testVal, this.site.getEncoding());
     }

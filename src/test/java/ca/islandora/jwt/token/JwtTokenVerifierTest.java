@@ -18,7 +18,7 @@ import java.util.List;
 
 public class JwtTokenVerifierTest {
 
-	private static String token;
+    private static String token;
 
     @Test
     public void testClaimsWithoutVerify() {
@@ -30,11 +30,11 @@ public class JwtTokenVerifierTest {
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.none());
-	    JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
-	    assertEquals(1, verifier.getUid());
+        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        assertEquals(1, verifier.getUid());
         assertEquals("admin", verifier.getName());
         assertEquals("http://test.com", verifier.getUrl());
-        List<String> roles = verifier.getRoles();
+        final List<String> roles = verifier.getRoles();
         assertEquals(2, roles.size());
         assertEquals("Role1", roles.get(0));
         assertEquals("Role2", roles.get(1));
@@ -46,14 +46,14 @@ public class JwtTokenVerifierTest {
                 .withClaim("name", "admin")
                 .withClaim("url", "http://test.com")
                 .sign(Algorithm.none());
-        JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
         assertNull(verifier);
     }
 
     @Test
     public void testClaimsBad() {
         token = "gibberish";
-        JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
         assertNull(verifier);
     }
 
@@ -68,11 +68,11 @@ public class JwtTokenVerifierTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.HMAC256("secret"));
 
-        JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
         assertEquals(1, verifier.getUid());
         assertEquals("admin", verifier.getName());
         assertEquals("http://test.com", verifier.getUrl());
-        List<String> roles = verifier.getRoles();
+        final List<String> roles = verifier.getRoles();
         assertEquals(2, roles.size());
         assertEquals("Role1", roles.get(0));
         assertEquals("Role2", roles.get(1));
@@ -83,10 +83,10 @@ public class JwtTokenVerifierTest {
 
     @Test
     public void testClaimsAndVerifyRsa() throws Exception {
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-        KeyPair pair = keyGen.generateKeyPair();
-        RSAKey privateKey = (RSAKey) pair.getPrivate();
-        RSAKey publicKey = (RSAKey) pair.getPublic();
+        final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        final KeyPair pair = keyGen.generateKeyPair();
+        final RSAKey privateKey = (RSAKey) pair.getPrivate();
+        final RSAKey publicKey = (RSAKey) pair.getPublic();
 
         token = JWT.create()
                 .withArrayClaim("roles", new String[]{"Role1", "Role2"})
@@ -97,11 +97,11 @@ public class JwtTokenVerifierTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.RSA512(privateKey));
 
-        JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
         assertEquals(1, verifier.getUid());
         assertEquals("admin", verifier.getName());
         assertEquals("http://test.com", verifier.getUrl());
-        List<String> roles = verifier.getRoles();
+        final List<String> roles = verifier.getRoles();
         assertEquals(2, roles.size());
         assertEquals("Role1", roles.get(0));
         assertEquals("Role2", roles.get(1));
@@ -121,11 +121,11 @@ public class JwtTokenVerifierTest {
                 .withExpiresAt(Date.from(LocalDateTime.now().minusHours(2).toInstant(ZoneOffset.UTC)))
                 .sign(Algorithm.HMAC256("secret"));
 
-        JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
+        final JwtTokenVerifier verifier = JwtTokenVerifier.create(token);
         assertEquals(1, verifier.getUid());
         assertEquals("admin", verifier.getName());
         assertEquals("http://test.com", verifier.getUrl());
-        List<String> roles = verifier.getRoles();
+        final List<String> roles = verifier.getRoles();
         assertEquals(2, roles.size());
         assertEquals("Role1", roles.get(0));
         assertEquals("Role2", roles.get(1));

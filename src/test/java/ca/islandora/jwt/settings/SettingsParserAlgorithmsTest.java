@@ -16,8 +16,8 @@ public class SettingsParserAlgorithmsTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    public void testOneSiteHmacInlineKey(String algorithm) throws Exception {
-        String testXml = String.join("\n"
+    private void testOneSiteHmacInlineKey(final String algorithm) throws Exception {
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='" + algorithm + "' encoding='plain'>"
                 , "   test data"
@@ -25,8 +25,8 @@ public class SettingsParserAlgorithmsTest {
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(1, algorithms.size());
         assertEquals(true, algorithms.containsKey("http://test.com"));
         assertEquals(algorithm, algorithms.get("http://test.com").getName());
@@ -41,7 +41,7 @@ public class SettingsParserAlgorithmsTest {
 
     @Test
     public void testInvalidSitesVersion() throws Exception {
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='2'>"
                 , "  <site url='http://test.com' algorithm='HS384' encoding='plain'>"
                 , "   test data"
@@ -49,14 +49,14 @@ public class SettingsParserAlgorithmsTest {
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(0, algorithms.size());
     }
 
     @Test
     public void testOneSiteHmacBase64() throws Exception {
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='base64'>"
                 , "   am9uYXRoYW4gaXMgYXdlc29tZQ=="
@@ -64,14 +64,14 @@ public class SettingsParserAlgorithmsTest {
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(1, algorithms.size());
     }
 
     @Test
     public void testOneSiteHmacInvalidBase64() throws Exception {
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='base64'>"
                 , "   this is invalid base64"
@@ -79,14 +79,14 @@ public class SettingsParserAlgorithmsTest {
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(0, algorithms.size());
     }
 
     @Test
     public void testOneSiteHmacInvalidEncoding() throws Exception {
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='badalgorithm'>"
                 , "   this is invalid base64"
@@ -94,23 +94,23 @@ public class SettingsParserAlgorithmsTest {
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(0, algorithms.size());
     }
 
-    public void testOneSiteHmacFileKey(String algorithm) throws Exception {
-        File key = temporaryFolder.newFile();
-        String path = key.getAbsolutePath();
+    private void testOneSiteHmacFileKey(final String algorithm) throws Exception {
+        final File key = temporaryFolder.newFile();
+        final String path = key.getAbsolutePath();
 
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='" + algorithm + "' encoding='plain' path='" + path + "'/>"
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(1, algorithms.size());
         assertEquals(true, algorithms.containsKey("http://test.com"));
         assertEquals(algorithm, algorithms.get("http://test.com").getName());
@@ -125,7 +125,7 @@ public class SettingsParserAlgorithmsTest {
 
     @Test
     public void testSiteBothInlineAndPath() throws Exception {
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='HS384' encoding='plain' path='foo'>"
                 , "   test data"
@@ -133,40 +133,40 @@ public class SettingsParserAlgorithmsTest {
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(0, algorithms.size());
     }
 
     @Test
     public void testSiteNeitherInlineAndPath() throws Exception {
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='HS384' encoding='plain'/>"
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(0, algorithms.size());
     }
 
     @Test
     public void testSiteInvalidPath() throws Exception {
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='HS384' encoding='plain' path='foo'/>"
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(0, algorithms.size());
     }
 
     @Test
     public void testSiteNoUrlDefault() throws Exception {
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site algorithm='HS256' encoding='plain' default='true'>"
                 , "   test data"
@@ -174,13 +174,13 @@ public class SettingsParserAlgorithmsTest {
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(1, algorithms.size());
     }
 
-    public void testOneSiteRsaInlineKey(String algorithm) throws Exception {
-        String testXml = String.join("\n"
+    private void testOneSiteRsaInlineKey(final String algorithm) throws Exception {
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='" + algorithm + "' encoding='PEM'>"
                 , "-----BEGIN PUBLIC KEY-----"
@@ -193,8 +193,8 @@ public class SettingsParserAlgorithmsTest {
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(1, algorithms.size());
         assertEquals(true, algorithms.containsKey("http://test.com"));
         assertEquals(algorithm, algorithms.get("http://test.com").getName());
@@ -207,11 +207,11 @@ public class SettingsParserAlgorithmsTest {
         testOneSiteRsaInlineKey("RS512");
     }
 
-    public void testOneSiteRsaFileKey(String algorithm) throws Exception {
-        File keyFile = temporaryFolder.newFile();
-        String path = keyFile.getAbsolutePath();
+    private void testOneSiteRsaFileKey(final String algorithm) throws Exception {
+        final File keyFile = temporaryFolder.newFile();
+        final String path = keyFile.getAbsolutePath();
 
-        String pemPublicKey = String.join("\n"
+        final String pemPublicKey = String.join("\n"
                 , "-----BEGIN PUBLIC KEY-----"
                 , "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEVO4MNlZG+iGYhoJd/cBpfMd9"
                 , "YnKsntF+zhQs8lCbBabgY8kNoXVIEeOm4WPJ+W53gLDAIg6BNrZqxk9z1TLD6Dmz"
@@ -222,14 +222,14 @@ public class SettingsParserAlgorithmsTest {
 
         Files.write(Paths.get(path), pemPublicKey.getBytes());
 
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='" + algorithm + "' encoding='PEM' path='" + path + "'/>"
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(1, algorithms.size());
         assertEquals(true, algorithms.containsKey("http://test.com"));
         assertEquals(algorithm, algorithms.get("http://test.com").getName());
@@ -244,7 +244,7 @@ public class SettingsParserAlgorithmsTest {
 
     @Test
     public void testOneSiteAllRsaInvalidEncoding() throws Exception {
-        String testXml = String.join("\n"
+        final String testXml = String.join("\n"
                 , "<sites version='1'>"
                 , "  <site url='http://test.com' algorithm='RS256' encoding='PEM'>"
                 , "-----BEGIN PUBLIC KEY-----"
@@ -252,8 +252,8 @@ public class SettingsParserAlgorithmsTest {
                 , "</sites>"
         );
 
-        InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(0, algorithms.size());
     }
 }

@@ -7,7 +7,6 @@ import org.apache.tomcat.util.digester.Digester;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.xml.sax.SAXException;
-import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
@@ -15,15 +14,23 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.io.File;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.FileReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
-public class SettingsParser {
+public final class SettingsParser {
     private static Digester digester = null;
     private static Log log = LogFactory.getLog(JwtSite.class);
-    private enum AlgorithmType {INVALID, RSA, HMAC};
+    private enum AlgorithmType {INVALID, RSA, HMAC}
 
-    protected static Digester getDigester() {
+    private SettingsParser() { }
+
+    private static Digester getDigester() {
         if (digester == null) {
             digester = new Digester();
             digester.setValidating(false);
@@ -38,34 +45,31 @@ public class SettingsParser {
     }
 
 
-    private static AlgorithmType getSiteAlgorithmType(String algorithm) {
+    private static AlgorithmType getSiteAlgorithmType(final String algorithm) {
         if (algorithm.equalsIgnoreCase("RS256")) {
             return AlgorithmType.RSA;
-        }
-        else if (algorithm.equalsIgnoreCase("RS384")) {
+        } else if (algorithm.equalsIgnoreCase("RS384")) {
+            return AlgorithmType.RSA;
+        } else if (algorithm.equalsIgnoreCase("RS512")) {
             return AlgorithmType.RSA;
         }
-        else if (algorithm.equalsIgnoreCase("RS512")) {
-            return AlgorithmType.RSA;
-        }
+
         if (algorithm.equalsIgnoreCase("HS256")) {
             return AlgorithmType.HMAC;
-        }
-        else if (algorithm.equalsIgnoreCase("HS384")) {
+        } else if (algorithm.equalsIgnoreCase("HS384")) {
             return AlgorithmType.HMAC;
-        }
-        else if (algorithm.equalsIgnoreCase("HS512")) {
+        } else if (algorithm.equalsIgnoreCase("HS512")) {
             return AlgorithmType.HMAC;
-        }
-        else {
+        } else {
             return AlgorithmType.INVALID;
         }
     }
 
-    private static boolean validateExpandPath(JwtSite site) {
+    private static boolean validateExpandPath(final JwtSite site) {
         File file = new File(site.getPath());
-        if (!file.isAbsolute())
+        if (!file.isAbsolute()) {
             file = new File(System.getProperty("catalina.base"), site.getPath());
+        }
         if (!file.exists() || !file.canRead()) {
             log.error("Path does not exist:" + site.getPath() + ". Site ignored.");
             return false;
@@ -74,34 +78,34 @@ public class SettingsParser {
         return true;
     }
 
-    protected static Algorithm getRsaAlgorithm(JwtSite site) {
+    private static Algorithm getRsaAlgorithm(final JwtSite site) {
         Reader publicKeyReader = null;
         RSAPublicKey publicKey = null;
 
         if (!site.getKey().equalsIgnoreCase("")) {
             publicKeyReader = new StringReader(site.getKey());
-        }
-        else if (site.getPath() != null) {
+        } else if (site.getPath() != null) {
             try {
                 publicKeyReader = new FileReader(site.getPath());
-            }
-            catch (FileNotFoundException e) {
+            } catch (FileNotFoundException e) {
                 log.error("Private key file not found.");
-                return null;
             }
+        }
+
+        if (publicKeyReader == null) {
+            return null;
         }
 
         if (site.getEncoding().equalsIgnoreCase("pem")) {
             try {
-                PemReader pemReader = new PemReader(publicKeyReader);
-                KeyFactory factory = KeyFactory.getInstance("RSA");
-                PemObject pemObject = pemReader.readPemObject();
-                X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(pemObject.getContent());
+                final PemReader pemReader = new PemReader(publicKeyReader);
+                final KeyFactory factory = KeyFactory.getInstance("RSA");
+                final PemObject pemObject = pemReader.readPemObject();
+                final X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(pemObject.getContent());
                 publicKey = (RSAPublicKey) factory.generatePublic(pubKeySpec);
                 pemReader.close();
                 publicKeyReader.close();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 log.error("Error loading public key.");
                 return null;
             }
@@ -113,74 +117,64 @@ public class SettingsParser {
 
         if (site.getAlgorithm().equalsIgnoreCase("RS256")) {
             return Algorithm.RSA256(publicKey);
-        }
-        else if (site.getAlgorithm().equalsIgnoreCase("RS384")) {
+        } else if (site.getAlgorithm().equalsIgnoreCase("RS384")) {
             return Algorithm.RSA384(publicKey);
-        }
-        else if (site.getAlgorithm().equalsIgnoreCase("RS512")) {
+        } else if (site.getAlgorithm().equalsIgnoreCase("RS512")) {
             return Algorithm.RSA512(publicKey);
-        }
-        else {
+        } else {
             return null;
         }
     }
 
-    protected static Algorithm getHmacAlgorithm(JwtSite site) {
+    private static Algorithm getHmacAlgorithm(final JwtSite site) {
         byte[] secret;
         byte[] secretRaw = null;
 
         if (!site.getKey().equalsIgnoreCase("")) {
             secretRaw = site.getKey().trim().getBytes();
-        }
-        else if (site.getPath() != null) {
+        } else if (site.getPath() != null) {
             try {
                 secretRaw = Files.readAllBytes(Paths.get(site.getPath()));
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 log.error("Unable to get secret from file.", e);
-                return null;
             }
         }
 
+        if (secretRaw == null) {
+            return null;
+        }
 
         if (site.getEncoding().equalsIgnoreCase("base64")) {
             try {
                 secret = Base64.getDecoder().decode(secretRaw);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 log.error("Base64 decode error. Skipping site.", e);
                 return null;
             }
-        }
-        else if (site.getEncoding().equalsIgnoreCase("plain")) {
+        } else if (site.getEncoding().equalsIgnoreCase("plain")) {
             secret = secretRaw;
-        }
-        else {
+        } else {
             return null;
         }
 
         if (site.getAlgorithm().equalsIgnoreCase("HS256")) {
             return Algorithm.HMAC256(secret);
-        }
-        else if (site.getAlgorithm().equalsIgnoreCase("HS384")) {
+        } else if (site.getAlgorithm().equalsIgnoreCase("HS384")) {
             return Algorithm.HMAC384(secret);
-        }
-        else if (site.getAlgorithm().equalsIgnoreCase("HS512")) {
+        } else if (site.getAlgorithm().equalsIgnoreCase("HS512")) {
             return Algorithm.HMAC512(secret);
-        }
-        else {
+        } else {
             return null;
         }
     }
 
-    public static Map<String, Algorithm> getSiteAlgorithms(InputStream settings) {
-        Map<String, Algorithm> algorithms = new HashMap<>();
-        JwtSites sites = null;
+    public static Map<String, Algorithm> getSiteAlgorithms(final InputStream settings) {
+        final Map<String, Algorithm> algorithms = new HashMap<>();
+        JwtSites sites;
 
         try {
             sites = getSitesObject(settings);
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             log.error("Error loading settings file.", e);
             return algorithms;
         }
@@ -190,37 +184,32 @@ public class SettingsParser {
             return algorithms;
         }
 
-        JwtSite site;
         boolean defaultSet = false;
 
-        for(Iterator<JwtSite> sitesIterator = sites.getSites().iterator(); sitesIterator.hasNext();) {
-            site = sitesIterator.next();
-
-            boolean pathDefined = site.getPath() != null && !site.getPath().equalsIgnoreCase("");
-            boolean keyDefined = site.getKey() != null && !site.getKey().equalsIgnoreCase("");
+        for (JwtSite site : sites.getSites()) {
+            final boolean pathDefined = site.getPath() != null && !site.getPath().equalsIgnoreCase("");
+            final boolean keyDefined = site.getKey() != null && !site.getKey().equalsIgnoreCase("");
 
             // Check that we don't have both a key and a path defined
-            if (!(pathDefined ^ keyDefined)) {
+            if (pathDefined == keyDefined) {
                 log.error("Only one of path or key must be defined.");
                 continue;
             }
 
             if (site.getPath() != null) {
-                if(!validateExpandPath(site)) {
+                if (!validateExpandPath(site)) {
                     continue;
                 }
             }
 
             // Check that the algorithm type is valid.
-            AlgorithmType algorithmType = getSiteAlgorithmType(site.getAlgorithm());
-            Algorithm algorithm = null;
+            final AlgorithmType algorithmType = getSiteAlgorithmType(site.getAlgorithm());
+            Algorithm algorithm;
             if (algorithmType == AlgorithmType.HMAC) {
                 algorithm = getHmacAlgorithm(site);
-            }
-            else if (algorithmType == AlgorithmType.RSA) {
+            } else if (algorithmType == AlgorithmType.RSA) {
                 algorithm = getRsaAlgorithm(site);
-            }
-            else {
+            } else {
                 log.error("Invalid algorithm selection: " + site.getAlgorithm() + ". Site ignored." );
                 continue;
             }
@@ -230,16 +219,16 @@ public class SettingsParser {
                 continue;
             }
 
-            if(site.getDefault()) {
-                if (defaultSet == true) {
+            if (site.getDefault()) {
+                if (defaultSet) {
                     log.error("Multiple default sites specified in configuration.");
                     continue;
                 }
                 defaultSet = true;
             }
 
-            if(algorithm != null) {
-                String name = site.getDefault() ? null : site.getUrl();
+            if (algorithm != null) {
+                final String name = site.getDefault() ? null : site.getUrl();
                 algorithms.put(name, algorithm);
             }
         }
@@ -247,10 +236,8 @@ public class SettingsParser {
         return algorithms;
     }
 
-    protected static JwtSites getSitesObject(InputStream settings)
-            throws IOException, SAXException
-    {
-        JwtSites sitesConfig = (JwtSites) getDigester().parse(settings);
-        return sitesConfig;
+    static JwtSites getSitesObject(final InputStream settings)
+            throws IOException, SAXException {
+        return (JwtSites) getDigester().parse(settings);
     }
 }

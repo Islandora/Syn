@@ -11,50 +11,44 @@ import org.apache.juli.logging.LogFactory;
 
 public class JwtTokenVerifier {
 
-	private static final Log log = LogFactory.getLog(JwtTokenVerifier.class);
-	private String token;
-	private JWT jwt;
+    private static final Log log = LogFactory.getLog(JwtTokenVerifier.class);
+    private String token;
+    private JWT jwt;
 
-	private JwtTokenVerifier() {}
+    private JwtTokenVerifier() { }
 
-	public static JwtTokenVerifier create(String token) {
-		JwtTokenVerifier tokenVerifier = new JwtTokenVerifier();
-		tokenVerifier.token = token;
-		try {
+    public static JwtTokenVerifier create(final String token) {
+        final JwtTokenVerifier tokenVerifier = new JwtTokenVerifier();
+        tokenVerifier.token = token;
+        try {
             tokenVerifier.jwt = JWT.decode(token);
-            if(tokenVerifier.jwt.getClaim("uid").isNull()) {
+            if (tokenVerifier.jwt.getClaim("uid").isNull()) {
                 return null;
             }
-
-            if(tokenVerifier.jwt.getClaim("url").isNull()) {
+            if (tokenVerifier.jwt.getClaim("url").isNull()) {
                 return null;
             }
-
-            if(tokenVerifier.jwt.getClaim("name").isNull()) {
+            if (tokenVerifier.jwt.getClaim("name").isNull()) {
                 return null;
             }
-
-            if(tokenVerifier.jwt.getClaim("roles").isNull()) {
+            if (tokenVerifier.jwt.getClaim("roles").isNull()) {
                 return null;
             }
-
-            if(tokenVerifier.jwt.getExpiresAt() == null) {
+            if (tokenVerifier.jwt.getExpiresAt() == null) {
                 return null;
             }
-
-            if(tokenVerifier.jwt.getIssuedAt() == null) {
+            if (tokenVerifier.jwt.getIssuedAt() == null) {
                 return null;
             }
+        } catch (JWTDecodeException exception) {
+            log.error("Error decoding token: " + token, exception);
+            return null;
         }
-        catch(JWTDecodeException exception) {
-		    log.error("Error decoding token: " + token, exception);
-		    return null;
-        }
-		return tokenVerifier;
-	}
+        return tokenVerifier;
+    }
 
-	public int getUid() {
-	    return this.jwt.getClaim("uid").asInt();
+    public int getUid() {
+        return this.jwt.getClaim("uid").asInt();
     }
 
     public String getUrl() {
@@ -69,12 +63,11 @@ public class JwtTokenVerifier {
         return this.jwt.getClaim("roles").asList(String.class);
     }
 
-    public boolean verify(Algorithm algorithm) {
-	    JWTVerifier verifier = JWT.require(algorithm).build();
-	    try {
+    public boolean verify(final Algorithm algorithm) {
+        final JWTVerifier verifier = JWT.require(algorithm).build();
+        try {
             verifier.verify(this.token);
-        }
-        catch (JWTVerificationException exception) {
+        } catch (JWTVerificationException exception) {
             return false;
         }
 

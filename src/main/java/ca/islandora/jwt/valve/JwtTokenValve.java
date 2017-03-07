@@ -25,36 +25,38 @@ public class JwtTokenValve extends ValveBase {
     private static final Log log = LogFactory.getLog(JwtTokenValve.class);
     private Map<String, Algorithm> algorithmMap = null;
 
-	@Override
-	public void invoke(Request request, Response response)
-			throws IOException, ServletException {
+    @Override
+    public void invoke(final Request request, final Response response)
+            throws IOException, ServletException {
 
-		SecurityConstraint[] constraints = this.container.getRealm().findSecurityConstraints(request, request.getContext());
+        final SecurityConstraint[] constraints = this.container.getRealm()
+                .findSecurityConstraints(request, request.getContext());
 
-		if ((constraints == null && !request.getContext().getPreemptiveAuthentication()) || !hasAuthConstraint(constraints)) {
-			this.getNext().invoke(request, response); 
-		} else {
-			handleAuthentication(request, response);
-		}
-	}
+        if ((constraints == null
+                && !request.getContext().getPreemptiveAuthentication())
+                || !hasAuthConstraint(constraints)) {
+            this.getNext().invoke(request, response);
+        } else {
+            handleAuthentication(request, response);
+        }
+    }
 
-	private boolean hasAuthConstraint(SecurityConstraint[] constraints) {
-		boolean authConstraint = true;
-		for (SecurityConstraint securityConstraint : constraints) {
-			authConstraint &= securityConstraint.getAuthConstraint();
-		}
-		return authConstraint;
-	}
+    private boolean hasAuthConstraint(final SecurityConstraint[] constraints) {
+        boolean authConstraint = true;
+        for (SecurityConstraint securityConstraint : constraints) {
+            authConstraint &= securityConstraint.getAuthConstraint();
+        }
+        return authConstraint;
+    }
 
-	private boolean doAuthentication(Request request) {
+    private boolean doAuthentication(final Request request) {
         String token = request.getHeader("Authorization");
         if (token == null) {
             log.info("Request did not contain any token.");
             return false;
         }
 
-        String[] tokenParts = token.split(" ");
-
+        final String[] tokenParts = token.split(" ");
         if (tokenParts.length != 2 || !tokenParts[0].equalsIgnoreCase("bearer")) {
             log.info("Token was malformed. Token: " + token);
             return false;
@@ -62,18 +64,17 @@ public class JwtTokenValve extends ValveBase {
 
         // strip bearer off of the token
         token = tokenParts[1];
-        JwtTokenVerifier tokenVerifier = JwtTokenVerifier.create(token);
+        final JwtTokenVerifier tokenVerifier = JwtTokenVerifier.create(token);
         if (tokenVerifier == null) {
             log.info("Token rejected for not containing correct claims.");
             return false;
         }
 
-        String url = tokenVerifier.getUrl();
+        final String url = tokenVerifier.getUrl();
         Algorithm algorithm = null;
         if (algorithmMap.containsKey(url)) {
             algorithm = algorithmMap.get(url);
-        }
-        else if (algorithmMap.containsKey(null)) {
+        } else if (algorithmMap.containsKey(null)) {
             algorithm = algorithmMap.get(null);
         }
 
@@ -87,37 +88,34 @@ public class JwtTokenValve extends ValveBase {
             setUserRolesFromToken(request, tokenVerifier);
             request.setAuthType("ISLANDORA-JWT");
             return true;
-        }
-        else {
+        } else {
             log.info("Token failed signature verification: " + url);
             return false;
         }
     }
 
-    private void setUserRolesFromToken(Request request, JwtTokenVerifier tokenVerifier) {
-	    List<String> roles = tokenVerifier.getRoles();
-	    roles.add("Islandora");
-	    roles.add(tokenVerifier.getUrl());
-	    String name = tokenVerifier.getName();
-        GenericPrincipal principal = new GenericPrincipal(name, null, roles);
+    private void setUserRolesFromToken(final Request request, final JwtTokenVerifier tokenVerifier) {
+        final List<String> roles = tokenVerifier.getRoles();
+        roles.add("Islandora");
+        roles.add(tokenVerifier.getUrl());
+        final String name = tokenVerifier.getName();
+        final GenericPrincipal principal = new GenericPrincipal(name, null, roles);
         request.setUserPrincipal(principal);
     }
 
-	private void handleAuthentication(Request request, Response response)
-			throws IOException, ServletException {
-
-	    if(doAuthentication(request)) {
+    private void handleAuthentication(final Request request, final Response response)
+            throws IOException, ServletException {
+        if (doAuthentication(request)) {
             this.getNext().invoke(request, response);
-        }
-        else {
+        } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token authentication failed.");
         }
-	}
+    }
 
     public String getPathname() {
         return pathname;
     }
-    public void setPathname(String pathname) {
+    public void setPathname(final String pathname) {
         this.pathname = pathname;
     }
 
@@ -127,10 +125,12 @@ public class JwtTokenValve extends ValveBase {
         super.startInternal();
         // Validate the existence of our database file
         File file = new File(pathname);
-        if (!file.isAbsolute())
+        if (!file.isAbsolute()) {
             file = new File(System.getProperty("catalina.base"), pathname);
-        if (!file.exists() || !file.canRead())
+        }
+        if (!file.exists() || !file.canRead()) {
             throw new LifecycleException("Unable to load XML Configuration from Path: " + pathname);
+        }
 
         // Load the contents of the database file
         try {
