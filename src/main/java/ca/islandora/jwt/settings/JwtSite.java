@@ -1,6 +1,6 @@
 package ca.islandora.jwt.settings;
 
-class JwtSite {
+public class JwtSite {
     private String url = null;
     private String algorithm = null;
     private String key = null;
@@ -8,45 +8,45 @@ class JwtSite {
     private String encoding = null;
     private boolean defaultItem = false;
 
-    String getUrl() {
+    public String getUrl() {
         return this.url;
     }
-    void setUrl(final String url) {
+    public void setUrl(final String url) {
         this.url = url;
     }
 
-    String getAlgorithm() {
+    public String getAlgorithm() {
         return this.algorithm;
     }
-    void setAlgorithm(final String algorithm) {
+    public void setAlgorithm(final String algorithm) {
         this.algorithm = algorithm;
     }
 
-    String getKey() {
+    public String getKey() {
         return this.key;
     }
-    void setKey(final String key) {
+    public void setKey(final String key) {
         this.key = key;
     }
 
-    String getPath() {
+    public String getPath() {
         return this.path;
     }
-    void setPath(final String path) {
+    public void setPath(final String path) {
         this.path = path;
     }
 
-    String getEncoding() {
+    public String getEncoding() {
         return this.encoding;
     }
-    void setEncoding(final String encoding) {
+    public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
 
-    boolean getDefault() {
+    public boolean getDefault() {
         return this.defaultItem;
     }
-    void setDefault(final boolean defaultItem) {
+    public void setDefault(final boolean defaultItem) {
         this.defaultItem = defaultItem;
     }
 }
