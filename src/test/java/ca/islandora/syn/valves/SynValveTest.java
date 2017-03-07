@@ -123,7 +123,7 @@ public class SynValveTest {
         assertTrue(roles.contains("role1"));
         assertTrue(roles.contains("role2"));
         assertTrue(roles.contains("role3"));
-        assertTrue(roles.contains("Islandora"));
+        assertTrue(roles.contains("islandora"));
         assertTrue(roles.contains("http://test.com"));
         assertNull(argument.getValue().getPassword());
     }
@@ -232,7 +232,7 @@ public class SynValveTest {
         assertEquals("normalUser", argument.getValue().getName());
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
         assertEquals(2, roles.size());
-        assertTrue(roles.contains("Islandora"));
+        assertTrue(roles.contains("islandora"));
         assertTrue(roles.contains("http://test2.com"));
         assertNull(argument.getValue().getPassword());
     }

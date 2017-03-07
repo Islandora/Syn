@@ -96,7 +96,7 @@ public class SynValve extends ValveBase {
 
     private void setUserRolesFromToken(final Request request, final Verifier verifier) {
         final List<String> roles = verifier.getRoles();
-        roles.add("Islandora");
+        roles.add("islandora");
         roles.add(verifier.getUrl());
         final String name = verifier.getName();
         final GenericPrincipal principal = new GenericPrincipal(name, null, roles);
