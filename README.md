@@ -6,7 +6,7 @@
 
 ## Description
 
-A valve for Tomcat8 that authenticates the JWT tokens created by Islandora in order to provide sessionless Authentication for Fedora4.
+A valve for Tomcat8 that authenticates the JWT tokens created by Islandora in order to provide sessionless Authentication for Fedora4. Named after the Norse goddess [Syn](https://en.wikipedia.org/wiki/Syn_(goddess)).
 
 ## Building
 
@@ -14,14 +14,8 @@ This project requires Java 8 and can be built with [Gradle](https://gradle.org).
 
 ## Installing
 
-### Download dependancies
-Download artifacts from Maven Central Repo
-* [java-jwt-3.1.0.jar](https://repo1.maven.org/maven2/com/auth0/java-jwt/3.1.0/java-jwt-3.1.0.jar)
-* [bcprov-jdk15on-1.56.jar](http://central.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.56/bcprov-jdk15on-1.56.jar)
-and place into `TOMCAT_HOME/lib` directory. Can be found in Ubuntu at: `/var/lib/tomcat8/lib/`.
-
 ### Copy Syn JAR
-Copy the JAR that was built above from `build/libs/islandora-syn-X.X.X.jar` and place into `TOMCAT_HOME/lib` directory.
+Copy the JAR that was built above from `build/libs/islandora-syn-X.X.X-all.jar` and place into `$TOMCAT_HOME/lib` directory. Can be found in Ubuntu at: `/var/lib/tomcat8/lib/`. Note that this JAR is built to contain all the dependancies.
 
 ### Register Valve
 Now register the valve in Tomcat configuration file.
@@ -62,6 +56,9 @@ The valve checks if requested url is under **security contraints**. So, valve wi
 
 On ubuntu this file can be found at: 
 `/var/lib/tomcat8/webapps/fcrepo/WEB-INF/web.xml`
+
+### Setup Syn Configuration
+Modify the [example configuration](./conf/syn-settings.example.xml) and move it to: `$CATALINA_BASE/conf/syn-settings.xml`.
 
 ## Maintainers
 
