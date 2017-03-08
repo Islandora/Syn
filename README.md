@@ -1,8 +1,8 @@
 # Syn
-[![Build Status](https://travis-ci.org/jonathangreen/Syn.svg?branch=master)](https://travis-ci.org/jonathangreen/Syn)
+[![Build Status](https://travis-ci.org/islandora-claw/Syn.svg?branch=master)](https://travis-ci.org/islandora-claw/Syn)
 [![Contribution Guidelines](http://img.shields.io/badge/CONTRIBUTING-Guidelines-blue.svg)](./CONTRIBUTING.md)
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
-[![codecov](https://codecov.io/gh/jonathangreen/Syn/branch/master/graph/badge.svg)](https://codecov.io/gh/jonathangreen/Syn)
+[![codecov](https://codecov.io/gh/islandora-claw/Syn/branch/master/graph/badge.svg)](https://codecov.io/gh/islandora-claw/Syn)
 
 ## Description
 
