@@ -22,4 +22,12 @@ my secret key
   -->
   <site algorithm='RS256' encoding='PEM' path='/somewhere/on/filesystem.key' default='true'/>
 
+  <!--
+  This lets you specify a master token for testing. This should be used with care, as it gives anyone
+  with this token unlimited access to your repository.
+  -->
+  <token user='test' roles='role1,role2,role3'>
+    my super secret token
+  </token>
+
 </sites>

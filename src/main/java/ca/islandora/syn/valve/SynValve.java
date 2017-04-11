@@ -1,6 +1,7 @@
 package ca.islandora.syn.valve;
 
 import ca.islandora.syn.settings.SettingsParser;
+import ca.islandora.syn.settings.Token;
 import ca.islandora.syn.token.Verifier;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +25,7 @@ public class SynValve extends ValveBase {
     private String pathname = "conf/syn-settings.xml";
     private static final Log log = LogFactory.getLog(SynValve.class);
     private Map<String, Algorithm> algorithmMap = null;
+    private Map<String, Token> staticTokenMap = null;
 
     @Override
     public void invoke(final Request request, final Response response)
@@ -64,6 +66,15 @@ public class SynValve extends ValveBase {
 
         // strip bearer off of the token
         token = tokenParts[1];
+
+        // check if we have a static token that matches
+        if (this.staticTokenMap.containsKey(token)) {
+            log.info("Site verified using static token.");
+            setUserRolesFromStaticToken(request, this.staticTokenMap.get(token));
+            request.setAuthType("SYN");
+            return true;
+        }
+
         final Verifier verifier = Verifier.create(token);
         if (verifier == null) {
             log.info("Token rejected for not containing correct claims.");
@@ -92,6 +103,14 @@ public class SynValve extends ValveBase {
             log.info("Token failed signature verification: " + url);
             return false;
         }
+    }
+
+    private void setUserRolesFromStaticToken(final Request request, final Token token) {
+        final List<String> roles = token.getRoles();
+        roles.add("islandora");
+        final String name = token.getUser();
+        final GenericPrincipal principal = new GenericPrincipal(name, null, roles);
+        request.setUserPrincipal(principal);
     }
 
     private void setUserRolesFromToken(final Request request, final Verifier verifier) {
@@ -135,6 +154,7 @@ public class SynValve extends ValveBase {
         // Load the contents of the database file
         try {
             this.algorithmMap = SettingsParser.getSiteAlgorithms(new FileInputStream(file));
+            this.staticTokenMap = SettingsParser.getSiteStaticTokens(new FileInputStream(file));
         } catch (Exception e) {
             throw new LifecycleException("Error parsing XML Configuration", e);
         }
