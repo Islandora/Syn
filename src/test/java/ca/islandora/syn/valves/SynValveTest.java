@@ -129,6 +129,33 @@ public class SynValveTest {
     }
 
     @Test
+    public void shouldPassAuthToken() throws Exception {
+        final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+        final String token = "Bearer 1337";
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+                .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getHeader("Authorization"))
+                .thenReturn(token);
+
+        synValve.start();
+        synValve.invoke(request, response);
+
+        final InOrder inOrder = inOrder(request, nextValve);
+        inOrder.verify(request).getHeader("Authorization");
+        inOrder.verify(request).setUserPrincipal(argument.capture());
+        inOrder.verify(request).setAuthType("SYN");
+        inOrder.verify(nextValve).invoke(request, response);
+
+        assertEquals("islandoraAdmin", argument.getValue().getName());
+        final List<String> roles = Arrays.asList(argument.getValue().getRoles());
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("islandora"));
+        assertNull(argument.getValue().getPassword());
+    }
+
+    @Test
     public void shouldFailAuthBecauseOfTokenNotSet() throws Exception {
         final SecurityConstraint securityConstraint = new SecurityConstraint();
         securityConstraint.setAuthConstraint(true);
@@ -281,6 +308,9 @@ public class SynValveTest {
                 , "  <site algorithm='HS256' encoding='plain' default='true'>"
                 , "secret2"
                 , "  </site>"
+                , "  <token>"
+                , "1337"
+                , "  </token>"
                 , "</sites>"
         );
         Files.write(Paths.get(settingsFile.getAbsolutePath()), testXml.getBytes());

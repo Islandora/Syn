@@ -18,4 +18,14 @@ public class SitesTest {
         assertEquals(1, sites.getSites().size());
         assertEquals(site, sites.getSites().get(0));
     }
+
+    @Test
+    public void TestToken() {
+        final Sites sites = new Sites();
+        final Token token = new Token();
+        assertEquals(0, sites.getTokens().size());
+        sites.addToken(token);
+        assertEquals(1, sites.getTokens().size());
+        assertEquals(token, sites.getTokens().get(0));
+    }
 }

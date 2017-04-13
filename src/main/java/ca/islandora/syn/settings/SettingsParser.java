@@ -40,6 +40,10 @@ public final class SettingsParser {
             digester.addSetProperties("sites/site");
             digester.addCallMethod("sites/site", "setKey", 0);
             digester.addSetNext("sites/site", "addSite", "ca.islandora.syn.settings.Site");
+            digester.addObjectCreate("sites/token", "ca.islandora.syn.settings.Token");
+            digester.addSetProperties("sites/token");
+            digester.addCallMethod("sites/token", "setToken", 0);
+            digester.addSetNext("sites/token", "addToken", "ca.islandora.syn.settings.Token");
         }
         return digester;
     }
@@ -168,19 +172,28 @@ public final class SettingsParser {
         }
     }
 
-    public static Map<String, Algorithm> getSiteAlgorithms(final InputStream settings) {
-        final Map<String, Algorithm> algorithms = new HashMap<>();
+    private static Sites getSites(final InputStream settings) {
         Sites sites;
 
         try {
             sites = getSitesObject(settings);
         } catch (Exception e) {
             log.error("Error loading settings file.", e);
-            return algorithms;
+            return null;
         }
 
         if (sites.getVersion() != 1) {
             log.error("Incorrect XML version. Aborting.");
+            return null;
+        }
+
+        return sites;
+    }
+
+    public static Map<String, Algorithm> getSiteAlgorithms(final InputStream settings) {
+        final Map<String, Algorithm> algorithms = new HashMap<>();
+        final Sites sites = getSites(settings);
+        if (sites == null) {
             return algorithms;
         }
 
@@ -234,6 +247,24 @@ public final class SettingsParser {
         }
 
         return algorithms;
+    }
+
+    public static Map<String, Token> getSiteStaticTokens(final InputStream settings) {
+        final Map<String, Token> tokens = new HashMap<>();
+        final Sites sites = getSites(settings);
+        if (sites == null) {
+            return tokens;
+        }
+
+        for (Token token : sites.getTokens()) {
+            if (token.getToken().isEmpty()) {
+                log.error("Static token is empty ignoring.");
+            } else {
+                tokens.put(token.getToken(), token);
+            }
+        }
+
+        return tokens;
     }
 
     static Sites getSitesObject(final InputStream settings)
