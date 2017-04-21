@@ -7,7 +7,7 @@ public class SitesTest {
 
     @Test
     public void TestJwtSites() {
-        final Sites sites = new Sites();
+        final Config sites = new Config();
         assertEquals(-1, sites.getVersion());
         sites.setVersion(2);
         assertEquals(2,sites.getVersion());
@@ -21,7 +21,7 @@ public class SitesTest {
 
     @Test
     public void TestToken() {
-        final Sites sites = new Sites();
+        final Config sites = new Config();
         final Token token = new Token();
         assertEquals(0, sites.getTokens().size());
         sites.addToken(token);

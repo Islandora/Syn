@@ -15,13 +15,13 @@ public class SettingsParserDigestTest {
     @Test
     public void testOneSitePath() throws Exception {
         final String testXml = String.join("\n"
-            , "<sites version=\"12\">"
+            , "<config version=\"12\">"
             , "  <site url=\"http://test.com\" algorithm=\"RS384\" path=\"test/path.key\" encoding=\"PEM\"/>"
-            , "</sites>"
+            , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Sites settings = SettingsParser.getSitesObject(stream);
+        final Config settings = SettingsParser.getSitesObject(stream);
         assertEquals(12, settings.getVersion());
         assertEquals(1, settings.getSites().size());
 
@@ -37,16 +37,16 @@ public class SettingsParserDigestTest {
     @Test
     public void testOneSiteKey() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites>"
+                , "<config>"
                 , "  <site url=\"http://test.com\" algorithm=\"RS384\" encoding=\"PEM\" default=\"true\">"
                 , "multiline"
                 , "key"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Sites settings = SettingsParser.getSitesObject(stream);
+        final Config settings = SettingsParser.getSitesObject(stream);
         assertEquals(-1, settings.getVersion());
         assertEquals(1, settings.getSites().size());
 
@@ -62,38 +62,38 @@ public class SettingsParserDigestTest {
     @Test
     public void testTwoSites() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites>"
+                , "<config>"
                 , "  <site/>"
                 , "  <site/>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Sites settings = SettingsParser.getSitesObject(stream);
+        final Config settings = SettingsParser.getSitesObject(stream);
         assertEquals(2, settings.getSites().size());
     }
 
     @Test
     public void testOneSiteUnexpectedAttribute() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites>"
+                , "<config>"
                 , "  <site unexpected=\"woh\"/>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Sites settings = SettingsParser.getSitesObject(stream);
+        final Config settings = SettingsParser.getSitesObject(stream);
     }
 
     @Test
     public void testOneSiteUnexpectedTag() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites>"
+                , "<config>"
                 , "  <islandora/>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Sites settings = SettingsParser.getSitesObject(stream);
+        final Config settings = SettingsParser.getSitesObject(stream);
     }
 }
