@@ -284,11 +284,11 @@ public class SynValveTest {
                 .thenReturn("Bearer " + token);
 
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='plain'>"
                 , "secret"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
         Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
 
@@ -301,7 +301,7 @@ public class SynValveTest {
 
     private void createSettings(final File settingsFile) throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='plain'>"
                 , "secret"
                 , "  </site>"
@@ -311,7 +311,7 @@ public class SynValveTest {
                 , "  <token>"
                 , "1337"
                 , "  </token>"
-                , "</sites>"
+                , "</config>"
         );
         Files.write(Paths.get(settingsFile.getAbsolutePath()), testXml.getBytes());
     }

@@ -1,4 +1,4 @@
-<sites version='1'>
+<config version='1'>
   <!-- 
   Sites can be specified with a Key inline, or with a reference to a key 
   stored in a file. Both are shown in examples below.
@@ -30,4 +30,4 @@ my secret key
     my super secret token
   </token>
 
-</sites>
+</config>

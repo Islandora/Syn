@@ -3,7 +3,7 @@ package ca.islandora.syn.settings;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Sites {
+public class Config {
     private int version = -1;
     private List<Site> sites = new ArrayList<>();
     private List<Token> tokens = new ArrayList<>();

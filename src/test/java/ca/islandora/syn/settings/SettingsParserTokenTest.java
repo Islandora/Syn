@@ -12,11 +12,11 @@ public class SettingsParserTokenTest {
     @Test
     public void testInvalidVersion() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='2'>"
+                , "<config version='2'>"
                 , "  <token>"
                 , "   c00lpazzward"
                 , "  </token>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -27,11 +27,11 @@ public class SettingsParserTokenTest {
     @Test
     public void testTokenNoParams() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <token>"
                 , "   c00lpazzward"
                 , "  </token>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -46,11 +46,11 @@ public class SettingsParserTokenTest {
     @Test
     public void testTokenUser() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <token user='denis'>"
                 , "   c00lpazzward"
                 , "  </token>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -63,11 +63,11 @@ public class SettingsParserTokenTest {
     @Test
     public void testTokenRole() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <token roles='role1,role2,role3'>"
                 , "   c00lpazzward"
                 , "  </token>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());

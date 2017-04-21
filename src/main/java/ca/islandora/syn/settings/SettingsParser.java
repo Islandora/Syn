@@ -34,16 +34,16 @@ public final class SettingsParser {
         if (digester == null) {
             digester = new Digester();
             digester.setValidating(false);
-            digester.addObjectCreate("sites", "ca.islandora.syn.settings.Sites");
-            digester.addSetProperties("sites");
-            digester.addObjectCreate("sites/site", "ca.islandora.syn.settings.Site");
-            digester.addSetProperties("sites/site");
-            digester.addCallMethod("sites/site", "setKey", 0);
-            digester.addSetNext("sites/site", "addSite", "ca.islandora.syn.settings.Site");
-            digester.addObjectCreate("sites/token", "ca.islandora.syn.settings.Token");
-            digester.addSetProperties("sites/token");
-            digester.addCallMethod("sites/token", "setToken", 0);
-            digester.addSetNext("sites/token", "addToken", "ca.islandora.syn.settings.Token");
+            digester.addObjectCreate("config", "ca.islandora.syn.settings.Config");
+            digester.addSetProperties("config");
+            digester.addObjectCreate("config/site", "ca.islandora.syn.settings.Site");
+            digester.addSetProperties("config/site");
+            digester.addCallMethod("config/site", "setKey", 0);
+            digester.addSetNext("config/site", "addSite", "ca.islandora.syn.settings.Site");
+            digester.addObjectCreate("config/token", "ca.islandora.syn.settings.Token");
+            digester.addSetProperties("config/token");
+            digester.addCallMethod("config/token", "setToken", 0);
+            digester.addSetNext("config/token", "addToken", "ca.islandora.syn.settings.Token");
         }
         return digester;
     }
@@ -172,8 +172,8 @@ public final class SettingsParser {
         }
     }
 
-    private static Sites getSites(final InputStream settings) {
-        Sites sites;
+    private static Config getSites(final InputStream settings) {
+        Config sites;
 
         try {
             sites = getSitesObject(settings);
@@ -192,7 +192,7 @@ public final class SettingsParser {
 
     public static Map<String, Algorithm> getSiteAlgorithms(final InputStream settings) {
         final Map<String, Algorithm> algorithms = new HashMap<>();
-        final Sites sites = getSites(settings);
+        final Config sites = getSites(settings);
         if (sites == null) {
             return algorithms;
         }
@@ -251,7 +251,7 @@ public final class SettingsParser {
 
     public static Map<String, Token> getSiteStaticTokens(final InputStream settings) {
         final Map<String, Token> tokens = new HashMap<>();
-        final Sites sites = getSites(settings);
+        final Config sites = getSites(settings);
         if (sites == null) {
             return tokens;
         }
@@ -267,8 +267,8 @@ public final class SettingsParser {
         return tokens;
     }
 
-    static Sites getSitesObject(final InputStream settings)
+    static Config getSitesObject(final InputStream settings)
             throws IOException, SAXException {
-        return (Sites) getDigester().parse(settings);
+        return (Config) getDigester().parse(settings);
     }
 }

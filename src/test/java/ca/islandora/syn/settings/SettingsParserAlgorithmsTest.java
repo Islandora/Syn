@@ -18,11 +18,11 @@ public class SettingsParserAlgorithmsTest {
 
     private void testOneSiteHmacInlineKey(final String algorithm) throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='" + algorithm + "' encoding='plain'>"
                 , "   test data"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -42,11 +42,11 @@ public class SettingsParserAlgorithmsTest {
     @Test
     public void testInvalidSitesVersion() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='2'>"
+                , "<config version='2'>"
                 , "  <site url='http://test.com' algorithm='HS384' encoding='plain'>"
                 , "   test data"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -57,11 +57,11 @@ public class SettingsParserAlgorithmsTest {
     @Test
     public void testOneSiteHmacBase64() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='base64'>"
                 , "   am9uYXRoYW4gaXMgYXdlc29tZQ=="
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -72,11 +72,11 @@ public class SettingsParserAlgorithmsTest {
     @Test
     public void testOneSiteHmacInvalidBase64() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='base64'>"
                 , "   this is invalid base64"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -87,11 +87,11 @@ public class SettingsParserAlgorithmsTest {
     @Test
     public void testOneSiteHmacInvalidEncoding() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='badalgorithm'>"
                 , "   this is invalid base64"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -104,9 +104,9 @@ public class SettingsParserAlgorithmsTest {
         final String path = key.getAbsolutePath();
 
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='" + algorithm + "' encoding='plain' path='" + path + "'/>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -126,11 +126,11 @@ public class SettingsParserAlgorithmsTest {
     @Test
     public void testSiteBothInlineAndPath() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='HS384' encoding='plain' path='foo'>"
                 , "   test data"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -141,9 +141,9 @@ public class SettingsParserAlgorithmsTest {
     @Test
     public void testSiteNeitherInlineAndPath() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='HS384' encoding='plain'/>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -154,9 +154,9 @@ public class SettingsParserAlgorithmsTest {
     @Test
     public void testSiteInvalidPath() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='HS384' encoding='plain' path='foo'/>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -167,11 +167,11 @@ public class SettingsParserAlgorithmsTest {
     @Test
     public void testSiteNoUrlDefault() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site algorithm='HS256' encoding='plain' default='true'>"
                 , "   test data"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -181,7 +181,7 @@ public class SettingsParserAlgorithmsTest {
 
     private void testOneSiteRsaInlineKey(final String algorithm) throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='" + algorithm + "' encoding='PEM'>"
                 , "-----BEGIN PUBLIC KEY-----"
                 , "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEVO4MNlZG+iGYhoJd/cBpfMd9"
@@ -190,7 +190,7 @@ public class SettingsParserAlgorithmsTest {
                 , "KOT4nEF7MBGyOSP3KQIDAQAB"
                 , "-----END PUBLIC KEY-----"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -223,9 +223,9 @@ public class SettingsParserAlgorithmsTest {
         Files.write(Paths.get(path), pemPublicKey.getBytes());
 
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='" + algorithm + "' encoding='PEM' path='" + path + "'/>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
@@ -245,11 +245,11 @@ public class SettingsParserAlgorithmsTest {
     @Test
     public void testOneSiteAllRsaInvalidEncoding() throws Exception {
         final String testXml = String.join("\n"
-                , "<sites version='1'>"
+                , "<config version='1'>"
                 , "  <site url='http://test.com' algorithm='RS256' encoding='PEM'>"
                 , "-----BEGIN PUBLIC KEY-----"
                 , "  </site>"
-                , "</sites>"
+                , "</config>"
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
