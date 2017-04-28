@@ -23,7 +23,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
@@ -62,6 +64,8 @@ public class SynValveTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+    private static ZoneOffset offset;
+
     @Before
     public void setUp() throws Exception {
         settings = temporaryFolder.newFile();
@@ -74,6 +78,7 @@ public class SynValveTest {
 
         when(container.getRealm()).thenReturn(realm);
         when(request.getContext()).thenReturn(context);
+        offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
     }
 
     @Test
@@ -97,8 +102,8 @@ public class SynValveTest {
                 .withClaim("name", "adminuser")
                 .withClaim("url", "http://test.com")
                 .withArrayClaim("roles", new String[] {"role1", "role2", "role3"})
-                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
-                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
+                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
+                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
                 .sign(Algorithm.HMAC256("secret"));
 
         final SecurityConstraint securityConstraint = new SecurityConstraint();
@@ -208,8 +213,8 @@ public class SynValveTest {
                 .withClaim("name", "adminuser")
                 .withClaim("url", "http://test.com")
                 .withArrayClaim("roles", new String[] {"role1", "role2", "role3"})
-                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
-                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
+                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
+                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
                 .sign(Algorithm.HMAC256("secret"));
 
         final SecurityConstraint securityConstraint = new SecurityConstraint();
@@ -234,8 +239,8 @@ public class SynValveTest {
                 .withClaim("name", "normalUser")
                 .withClaim("url", "http://test2.com")
                 .withArrayClaim("roles", new String[] {})
-                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
-                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
+                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
+                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
                 .sign(Algorithm.HMAC256("secret2"));
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
@@ -272,8 +277,8 @@ public class SynValveTest {
                 .withClaim("name", "normalUser")
                 .withClaim("url", "http://test-no-match.com")
                 .withArrayClaim("roles", new String[] {})
-                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
-                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC)))
+                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
+                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
                 .sign(Algorithm.HMAC256("secret"));
 
         final SecurityConstraint securityConstraint = new SecurityConstraint();
