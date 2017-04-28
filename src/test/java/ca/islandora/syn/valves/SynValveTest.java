@@ -1,10 +1,26 @@
 package ca.islandora.syn.valves;
 
-import ca.islandora.syn.valve.SynValve;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
+import org.apache.catalina.Host;
 import org.apache.catalina.Realm;
 import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Request;
@@ -20,23 +36,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+
+import ca.islandora.syn.valve.SynValve;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SynValveTest {
@@ -64,6 +68,9 @@ public class SynValveTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+    @Mock
+    private Host mockHost;
+
     private static ZoneOffset offset;
 
     @Before
@@ -78,6 +85,7 @@ public class SynValveTest {
 
         when(container.getRealm()).thenReturn(realm);
         when(request.getContext()).thenReturn(context);
+        when(request.getMethod()).thenReturn("POST");
         offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
     }
 
@@ -95,12 +103,13 @@ public class SynValveTest {
     @Test
     public void shouldPassAuth() throws Exception {
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+        final String host = "http://test.com";
 
         final String token = "Bearer " + JWT
                 .create()
                 .withClaim("uid", 1)
                 .withClaim("name", "adminuser")
-                .withClaim("url", "http://test.com")
+                .withClaim("url", host)
                 .withArrayClaim("roles", new String[] {"role1", "role2", "role3"})
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -208,10 +217,11 @@ public class SynValveTest {
 
     @Test
     public void shouldFailTokenMissingUid() throws Exception {
+        final String host = "http://test.com";
         final String token = JWT
                 .create()
                 .withClaim("name", "adminuser")
-                .withClaim("url", "http://test.com")
+                .withClaim("url", host)
                 .withArrayClaim("roles", new String[] {"role1", "role2", "role3"})
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -233,11 +243,12 @@ public class SynValveTest {
 
     @Test
     public void shouldPassAuthDefaultSite() throws Exception {
+        final String host = "http://test2.com";
         final String token = JWT
                 .create()
                 .withClaim("uid", 1)
                 .withClaim("name", "normalUser")
-                .withClaim("url", "http://test2.com")
+                .withClaim("url", host)
                 .withArrayClaim("roles", new String[] {})
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -271,11 +282,12 @@ public class SynValveTest {
 
     @Test
     public void shouldFailAuthBecauseNoSiteMatch() throws Exception {
+        final String host = "http://test-no-match.com";
         final String token = JWT
                 .create()
                 .withClaim("uid", 1)
                 .withClaim("name", "normalUser")
-                .withClaim("url", "http://test-no-match.com")
+                .withClaim("url", host)
                 .withArrayClaim("roles", new String[] {})
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -302,6 +314,178 @@ public class SynValveTest {
 
         verify(request).getHeader("Authorization");
         verify(response).sendError(401, "Token authentication failed.");
+    }
+
+    @Test
+    public void allowAuthWithToken() throws Exception {
+        final String host = "http://anon-test.com";
+        final String token = JWT
+            .create()
+            .withClaim("uid", 1)
+            .withClaim("name", "normalUser")
+            .withClaim("url", host)
+            .withArrayClaim("roles", new String[] {})
+            .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
+            .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
+            .sign(Algorithm.HMAC256("secretFool"));
+
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+            .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getHeader("Authorization"))
+            .thenReturn("Bearer " + token);
+
+        final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+
+        final String testXml = String.join("\n"
+            , "<config version='1'>"
+            , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='true'>"
+            , "secretFool"
+            , "  </site>"
+            , "</config>"
+        );
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+
+        synValve.start();
+        synValve.invoke(request, response);
+
+        final InOrder inOrder = inOrder(request, nextValve);
+        inOrder.verify(request).getHeader("Authorization");
+        inOrder.verify(request).setUserPrincipal(argument.capture());
+        inOrder.verify(request).setAuthType("SYN");
+        inOrder.verify(nextValve).invoke(request, response);
+
+        assertEquals("normalUser", argument.getValue().getName());
+        final List<String> roles = Arrays.asList(argument.getValue().getRoles());
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains("islandora"));
+        assertTrue(roles.contains(host));
+        assertNull(argument.getValue().getPassword());
+    }
+
+    @Test
+    public void allowGetWithoutToken() throws Exception {
+        final String host = "http://anon-test.com";
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+            .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getMethod()).thenReturn("GET");
+        when(mockHost.toString()).thenReturn(host);
+        when(request.getHost()).thenReturn(mockHost);
+
+        final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+
+        final String testXml = String.join("\n"
+            , "<config version='1'>"
+            , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='true'>"
+            , "secretFool"
+            , "  </site>"
+            , "</config>"
+        );
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+
+        synValve.start();
+        synValve.invoke(request, response);
+
+        final InOrder inOrder = inOrder(request, nextValve);
+        inOrder.verify(request).setUserPrincipal(argument.capture());
+        inOrder.verify(nextValve).invoke(request, response);
+
+        assertEquals("anonymous", argument.getValue().getName());
+        final List<String> roles = Arrays.asList(argument.getValue().getRoles());
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains("anonymous"));
+        assertTrue(roles.contains("islandora"));
+        assertNull(argument.getValue().getPassword());
+    }
+
+    @Test
+    public void overrideDefaultAllow() throws Exception {
+        final String host = "http://anon-test.com";
+        final String token = JWT
+            .create()
+            .withClaim("uid", 1)
+            .withClaim("name", "normalUser")
+            .withClaim("url", host)
+            .withArrayClaim("roles", new String[] {})
+            .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
+            .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
+            .sign(Algorithm.HMAC256("secretFool"));
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+            .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getHeader("Authorization"))
+            .thenReturn("Bearer " + token);
+        when(request.getMethod()).thenReturn("GET");
+        when(mockHost.toString()).thenReturn(host);
+        when(request.getHost()).thenReturn(mockHost);
+
+        final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+
+        final String testXml = String.join("\n"
+            , "<config version='1'>"
+            , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='false'>"
+            , "secretFool"
+            , "  </site>"
+            , "  <site algorithm='RS256' encoding='plain' anonymous='true' default='true'/>"
+            , "</config>"
+        );
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+
+        synValve.start();
+        synValve.invoke(request, response);
+
+        final InOrder inOrder = inOrder(request, nextValve);
+        inOrder.verify(request).setUserPrincipal(argument.capture());
+        inOrder.verify(nextValve).invoke(request, response);
+
+        assertEquals("normalUser", argument.getValue().getName());
+        final List<String> roles = Arrays.asList(argument.getValue().getRoles());
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains("islandora"));
+        assertTrue(roles.contains(host));
+        assertNull(argument.getValue().getPassword());
+    }
+
+    @Test
+    public void overrideDefaultDeny() throws Exception {
+        final String host = "http://anon-test.com";
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+            .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getMethod()).thenReturn("GET");
+        when(mockHost.toString()).thenReturn(host);
+        when(request.getHost()).thenReturn(mockHost);
+
+        final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+
+        final String testXml = String.join("\n"
+            , "<config version='1'>"
+            , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='true'>"
+            , "secretFool"
+            , "  </site>"
+            , "  <site algorithm='RS256' encoding='plain' anonymous='true' default='false'/>"
+            , "</config>"
+        );
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+
+        synValve.start();
+        synValve.invoke(request, response);
+
+        final InOrder inOrder = inOrder(request, nextValve);
+        inOrder.verify(request).setUserPrincipal(argument.capture());
+        inOrder.verify(nextValve).invoke(request, response);
+
+        assertEquals("anonymous", argument.getValue().getName());
+        final List<String> roles = Arrays.asList(argument.getValue().getRoles());
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains("anonymous"));
+        assertTrue(roles.contains("islandora"));
+        assertNull(argument.getValue().getPassword());
     }
 
     private void createSettings(final File settingsFile) throws Exception {

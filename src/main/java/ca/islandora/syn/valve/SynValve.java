@@ -1,16 +1,15 @@
 package ca.islandora.syn.valve;
 
-import ca.islandora.syn.settings.SettingsParser;
-import ca.islandora.syn.settings.Token;
-import ca.islandora.syn.token.Verifier;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
-import com.auth0.jwt.algorithms.Algorithm;
+
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
@@ -20,12 +19,20 @@ import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 
+import com.auth0.jwt.algorithms.Algorithm;
+
+import ca.islandora.syn.settings.SettingsParser;
+import ca.islandora.syn.settings.Token;
+import ca.islandora.syn.token.Verifier;
+
 public class SynValve extends ValveBase {
 
     private String pathname = "conf/syn-settings.xml";
     private static final Log log = LogFactory.getLog(SynValve.class);
     private Map<String, Algorithm> algorithmMap = null;
     private Map<String, Token> staticTokenMap = null;
+
+    private Map<String, Boolean> anonymousGetMap = null;
 
     @Override
     public void invoke(final Request request, final Response response)
@@ -36,7 +43,7 @@ public class SynValve extends ValveBase {
 
         if ((constraints == null
                 && !request.getContext().getPreemptiveAuthentication())
-                || !hasAuthConstraint(constraints)) {
+            || !hasAuthConstraint(constraints)) {
             this.getNext().invoke(request, response);
         } else {
             handleAuthentication(request, response);
@@ -105,6 +112,15 @@ public class SynValve extends ValveBase {
         }
     }
 
+    private void setAnonymousRoles(final Request request) {
+        final List<String> roles = new ArrayList<String>();
+        roles.add("anonymous");
+        roles.add("islandora");
+        final String name = "anonymous";
+        final GenericPrincipal principal = new GenericPrincipal(name, null, roles);
+        request.setUserPrincipal(principal);
+    }
+
     private void setUserRolesFromStaticToken(final Request request, final Token token) {
         final List<String> roles = token.getRoles();
         roles.add("islandora");
@@ -124,11 +140,37 @@ public class SynValve extends ValveBase {
 
     private void handleAuthentication(final Request request, final Response response)
             throws IOException, ServletException {
-        if (doAuthentication(request)) {
+        if (request.getMethod().equalsIgnoreCase("GET") &&
+            allowGetRequests(request.getHost().toString())) {
+            // Skip authentication
+            setAnonymousRoles(request);
+            this.getNext().invoke(request, response);
+        } else if (doAuthentication(request)) {
             this.getNext().invoke(request, response);
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token authentication failed.");
         }
+    }
+
+    /**
+     * Do the logic of allowing GET
+     *
+     * @param requestURI the site being requested
+     * @return whether to allow GET requests without authentication.
+     */
+    private boolean allowGetRequests(final String requestURI) {
+        // If there is a matching site URI and it allows anonymous, return true
+        if (anonymousGetMap.containsKey(requestURI) && anonymousGetMap.get(requestURI)) {
+            log.debug(String.format("Allowing all GET requests for site {}", requestURI));
+            return true;
+            // If default is 'allow' and there is no matching site to 'deny', return true.
+        } else if (anonymousGetMap.get("default") &&
+            (anonymousGetMap.containsKey(requestURI) && anonymousGetMap.get(requestURI)) ||
+            (!anonymousGetMap.containsKey(requestURI))) {
+            log.debug(String.format("GET requests allowed by default, not deny for  {}", requestURI));
+            return true;
+        }
+        return false;
     }
 
     public String getPathname() {
@@ -155,6 +197,7 @@ public class SynValve extends ValveBase {
         try {
             this.algorithmMap = SettingsParser.getSiteAlgorithms(new FileInputStream(file));
             this.staticTokenMap = SettingsParser.getSiteStaticTokens(new FileInputStream(file));
+            this.anonymousGetMap = SettingsParser.getSiteAllowAnonymous(new FileInputStream(file));
         } catch (Exception e) {
             throw new LifecycleException("Error parsing XML Configuration", e);
         }

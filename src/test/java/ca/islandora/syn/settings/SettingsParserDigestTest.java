@@ -1,14 +1,14 @@
 package ca.islandora.syn.settings;
 
-import org.junit.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
+import org.junit.Test;
 
 public class SettingsParserDigestTest {
 
@@ -25,7 +25,7 @@ public class SettingsParserDigestTest {
         assertEquals(12, settings.getVersion());
         assertEquals(1, settings.getSites().size());
 
-        final Site site = (Site) settings.getSites().get(0);
+        final Site site = settings.getSites().get(0);
         assertEquals("RS384", site.getAlgorithm());
         assertEquals("http://test.com", site.getUrl());
         assertEquals("test/path.key", site.getPath());
@@ -50,7 +50,7 @@ public class SettingsParserDigestTest {
         assertEquals(-1, settings.getVersion());
         assertEquals(1, settings.getSites().size());
 
-        final Site site = (Site) settings.getSites().get(0);
+        final Site site = settings.getSites().get(0);
         assertEquals("RS384", site.getAlgorithm());
         assertEquals("http://test.com", site.getUrl());
         assertNull(site.getPath());
@@ -95,5 +95,44 @@ public class SettingsParserDigestTest {
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
         final Config settings = SettingsParser.getSitesObject(stream);
+    }
+
+    @Test
+    public void testValidAnonymousTrue() throws Exception {
+        final String testXml = "<config>\n" +
+            "  <site url=\"http://test.com\" algorithm=\"RS384\" encoding=\"PEM\" default=\"true\" " +
+            "anonymous=\"true\" />\n" +
+            "</config>";
+
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Config settings = SettingsParser.getSitesObject(stream);
+        final Site sites = settings.getSites().get(0);
+        assertTrue("Did not set anonymous property", sites.getAnonymous());
+    }
+
+    @Test
+    public void testValidAnonymousFalse() throws Exception {
+        final String testXml = "<config>\n" +
+            "  <site url=\"http://test.com\" algorithm=\"RS384\" encoding=\"PEM\" default=\"true\" " +
+            "anonymous=\"false\" />\n" +
+            "</config>";
+
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Config settings = SettingsParser.getSitesObject(stream);
+        final Site sites = settings.getSites().get(0);
+        assertFalse("Did not set anonymous property", sites.getAnonymous());
+    }
+
+    @Test
+    public void testInvalidAnonymous() throws Exception {
+        final String testXml = "<config>\n" +
+            "  <site url=\"http://test.com\" algorithm=\"RS384\" encoding=\"PEM\" default=\"true\" " +
+            "anonymous=\"whatever\" />\n" +
+            "</config>";
+
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Config settings = SettingsParser.getSitesObject(stream);
+        final Site sites = settings.getSites().get(0);
+        assertFalse("Did not set anonymous property", sites.getAnonymous());
     }
 }
