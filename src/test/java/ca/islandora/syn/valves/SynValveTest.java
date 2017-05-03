@@ -488,6 +488,77 @@ public class SynValveTest {
         assertNull(argument.getValue().getPassword());
     }
 
+    @Test
+    public void defaultAndSiteAllowed() throws Exception {
+        final String host = "http://anon-test.com";
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+            .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getMethod()).thenReturn("GET");
+        when(mockHost.toString()).thenReturn(host);
+        when(request.getHost()).thenReturn(mockHost);
+
+        final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+
+        final String testXml = String.join("\n"
+            , "<config version='1'>"
+            , "  <site algorithm='RS256' encoding='plain' anonymous='true' default='true'/>"
+            , "</config>"
+        );
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+
+        synValve.start();
+        synValve.invoke(request, response);
+
+        final InOrder inOrder = inOrder(request, nextValve);
+        inOrder.verify(request).setUserPrincipal(argument.capture());
+        inOrder.verify(nextValve).invoke(request, response);
+
+        assertEquals("anonymous", argument.getValue().getName());
+        final List<String> roles = Arrays.asList(argument.getValue().getRoles());
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains("anonymous"));
+        assertTrue(roles.contains("islandora"));
+        assertNull(argument.getValue().getPassword());
+    }
+
+    @Test
+    public void shouldFailSignatureVerification() throws Exception {
+        final String host = "http://test.com";
+        final String token = JWT
+                .create()
+                .withClaim("uid", 1)
+                .withClaim("name", "normalUser")
+                .withClaim("url", host)
+                .withArrayClaim("roles", new String[] {})
+            .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
+            .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
+                .sign(Algorithm.HMAC256("secret"));
+
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+                .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getHeader("Authorization"))
+            .thenReturn("Bearer " + token + "s");
+
+        final String testXml = String.join("\n"
+                , "<config version='1'>"
+                , "  <site url='http://test.com' algorithm='HS256' encoding='plain'>"
+                , "secret"
+                , "  </site>"
+                , "</config>"
+        );
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+
+        synValve.start();
+        synValve.invoke(request, response);
+
+        verify(request).getHeader("Authorization");
+        verify(response).sendError(401, "Token authentication failed.");
+    }
+
     private void createSettings(final File settingsFile) throws Exception {
         final String testXml = String.join("\n"
                 , "<config version='1'>"

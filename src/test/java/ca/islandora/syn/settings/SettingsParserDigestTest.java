@@ -83,6 +83,7 @@ public class SettingsParserDigestTest {
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
         final Config settings = SettingsParser.getSitesObject(stream);
+        assertEquals(1, settings.getSites().size());
     }
 
     @Test
@@ -95,7 +96,8 @@ public class SettingsParserDigestTest {
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
         final Config settings = SettingsParser.getSitesObject(stream);
-    }
+        assertEquals(0, settings.getSites().size())
+;    }
 
     @Test
     public void testValidAnonymousTrue() throws Exception {
