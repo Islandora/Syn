@@ -16,6 +16,9 @@ my secret key
   <!-- A site with a key stored in a file -->
   <site url='http://test2.com' algorithm='HS256' encoding='base64' path='/somewhere/on/filesystem.key'/>
 
+  <!-- A site that allows all GET requests  -->
+  <site url='http://test3.com' algorithm='HS256' encoding='plain' anonymous='true'/>
+
   <!-- 
   This is how you specify a default site, which will be chosen if no 
   other site matches the JWT url claim

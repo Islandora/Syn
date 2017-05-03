@@ -7,6 +7,7 @@ public class Site {
     private String path = null;
     private String encoding = null;
     private boolean defaultItem = false;
+    private boolean allowAnonymous = false;
 
     public String getUrl() {
         return this.url;
@@ -48,5 +49,23 @@ public class Site {
     }
     public void setDefault(final boolean defaultItem) {
         this.defaultItem = defaultItem;
+    }
+
+    /**
+     * Allow GET requests without a token that match this site.
+     *
+     * @return whether to allow the request
+     */
+    public boolean getAnonymous() {
+        return this.allowAnonymous;
+    }
+
+    /**
+     * Set allow GET requests with a token that match this site.
+     *
+     * @param allowAnonGet boolean whether to allow these requests.
+     */
+    public void setAnonymous(final boolean allowAnonGet) {
+        this.allowAnonymous = allowAnonGet;
     }
 }

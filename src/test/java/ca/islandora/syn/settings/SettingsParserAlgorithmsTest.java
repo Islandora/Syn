@@ -1,16 +1,19 @@
 package ca.islandora.syn.settings;
 
-import com.auth0.jwt.algorithms.Algorithm;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
-import static org.junit.Assert.assertEquals;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import com.auth0.jwt.algorithms.Algorithm;
 
 public class SettingsParserAlgorithmsTest {
     @Rule
@@ -179,6 +182,21 @@ public class SettingsParserAlgorithmsTest {
         assertEquals(1, algorithms.size());
     }
 
+    @Test
+    public void testSiteNoUrl() throws Exception {
+        final String testXml = String.join("\n"
+                , "<config version='1'>"
+                , "  <site algorithm='HS256' encoding='plain'>"
+                , "   test data"
+                , "  </site>"
+                , "</config>"
+        );
+
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        assertEquals(0, algorithms.size());
+    }
+
     private void testOneSiteRsaInlineKey(final String algorithm) throws Exception {
         final String testXml = String.join("\n"
                 , "<config version='1'>"
@@ -252,6 +270,60 @@ public class SettingsParserAlgorithmsTest {
                 , "</config>"
         );
 
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        assertEquals(0, algorithms.size());
+    }
+
+
+    @Test
+    public void testMultipleDefaults() throws Exception {
+        final File keyFile = temporaryFolder.newFile();
+        final String path = keyFile.getAbsolutePath();
+
+        final String pemPublicKey = String.join("\n"
+                , "-----BEGIN PUBLIC KEY-----"
+                , "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEVO4MNlZG+iGYhoJd/cBpfMd9"
+                , "YnKsntF+zhQs8lCbBabgY8kNoXVIEeOm4WPJ+W53gLDAIg6BNrZqxk9z1TLD6Dmz"
+                , "t176OLYkNoTI9LNf6z4wuBenrlQ/H5UnYl6h5QoOdVpNAgEjkDcdTSOE1lqFLIle"
+                , "KOT4nEF7MBGyOSP3KQIDAQAB"
+                , "-----END PUBLIC KEY-----"
+        );
+
+        Files.write(Paths.get(path), pemPublicKey.getBytes());
+
+        final String testXml = String.join("\n"
+            , "<config version=\"1\">"
+            , "  <site algorithm=\"RS384\" path=\"" + path + "\" encoding=\"PEM\" default=\"true\"/>"
+            , "  <site algorithm=\"HS256\" path=\"" + path + "\" encoding=\"plain\" default=\"true\"/>"
+            , "</config>"
+        );
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        assertEquals(1, algorithms.size());
+    }
+
+    @Test
+    public void testInvalidAlgorithm() throws Exception {
+        final File keyFile = temporaryFolder.newFile();
+        final String path = keyFile.getAbsolutePath();
+
+        final String pemPublicKey = String.join("\n"
+                , "-----BEGIN PUBLIC KEY-----"
+                , "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEVO4MNlZG+iGYhoJd/cBpfMd9"
+                , "YnKsntF+zhQs8lCbBabgY8kNoXVIEeOm4WPJ+W53gLDAIg6BNrZqxk9z1TLD6Dmz"
+                , "t176OLYkNoTI9LNf6z4wuBenrlQ/H5UnYl6h5QoOdVpNAgEjkDcdTSOE1lqFLIle"
+                , "KOT4nEF7MBGyOSP3KQIDAQAB"
+                , "-----END PUBLIC KEY-----"
+        );
+
+        Files.write(Paths.get(path), pemPublicKey.getBytes());
+
+        final String testXml = String.join("\n"
+            , "<config version=\"1\">"
+            , "  <site algorithm=\"RSA384\" path=\"" + path + "\" encoding=\"PEM\" default=\"true\"/>"
+            , "</config>"
+        );
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
         final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
         assertEquals(0, algorithms.size());

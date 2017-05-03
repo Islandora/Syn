@@ -1,12 +1,12 @@
 package ca.islandora.syn.settings;
 
-import com.auth0.jwt.algorithms.Algorithm;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.digester.Digester;
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemReader;
-import org.xml.sax.SAXException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
@@ -15,13 +15,16 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.File;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.FileReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.stream.Collectors;
+
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
+import org.apache.tomcat.util.digester.Digester;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
+import org.xml.sax.SAXException;
+
+import com.auth0.jwt.algorithms.Algorithm;
 
 public final class SettingsParser {
     private static Digester digester = null;
@@ -250,21 +253,35 @@ public final class SettingsParser {
     }
 
     public static Map<String, Token> getSiteStaticTokens(final InputStream settings) {
-        final Map<String, Token> tokens = new HashMap<>();
         final Config sites = getSites(settings);
         if (sites == null) {
-            return tokens;
+            return new HashMap<String, Token>();
         }
 
-        for (Token token : sites.getTokens()) {
-            if (token.getToken().isEmpty()) {
-                log.error("Static token is empty ignoring.");
-            } else {
-                tokens.put(token.getToken(), token);
-            }
-        }
+        final Map<String, Token> tokens = sites.getTokens().stream().filter(x -> !x.getToken().isEmpty())
+            .collect(Collectors.toMap(Token::getToken, t -> t));
 
         return tokens;
+    }
+
+    /**
+     * Build a list of site urls that allow anonymous GET requests.
+     *
+     * @param settings the path to the syn-settings file
+     * @return list of site urls.
+     */
+    public static Map<String, Boolean> getSiteAllowAnonymous(final InputStream settings) {
+        final Config sites = getSites(settings);
+        if (sites == null) {
+            return new HashMap<String, Boolean>();
+        }
+
+        final Map<String, Boolean> anonymousAllowed = sites.getSites().stream().filter(s -> !s.getDefault())
+            .collect(Collectors.toMap(Site::getUrl, Site::getAnonymous));
+        sites.getSites().stream().filter(Site::getDefault).findFirst()
+            .ifPresent(s -> anonymousAllowed.put("default", s.getAnonymous()));
+
+        return anonymousAllowed;
     }
 
     static Config getSitesObject(final InputStream settings)
