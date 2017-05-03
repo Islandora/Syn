@@ -140,7 +140,8 @@ public class SynValve extends ValveBase {
 
     private void handleAuthentication(final Request request, final Response response)
             throws IOException, ServletException {
-        if (request.getMethod().equalsIgnoreCase("GET") &&
+        if ((request.getMethod().equalsIgnoreCase("GET") ||
+            request.getMethod().equals("HEAD")) &&
             allowGetRequests(request.getHost().toString())) {
             // Skip authentication
             setAnonymousRoles(request);
@@ -153,23 +154,30 @@ public class SynValve extends ValveBase {
     }
 
     /**
-     * Do the logic of allowing GET
+     * Do the logic of allowing GET/HEAD requests.
      *
      * @param requestURI the site being requested
      * @return whether to allow GET requests without authentication.
      */
     private boolean allowGetRequests(final String requestURI) {
-        // If there is a matching site URI and it allows anonymous, return true
-        if (anonymousGetMap.containsKey(requestURI) && anonymousGetMap.get(requestURI)) {
-            log.debug(String.format("Allowing all GET requests for site {}", requestURI));
-            return true;
-            // If default is 'allow' and there is no matching site to 'deny', return true.
-        } else if (anonymousGetMap.get("default") &&
-            (anonymousGetMap.containsKey(requestURI) && anonymousGetMap.get(requestURI)) ||
-            (!anonymousGetMap.containsKey(requestURI))) {
-            log.debug(String.format("GET requests allowed by default, not deny for  {}", requestURI));
-            return true;
+        // If there is a matching site URI, return its value
+        if (anonymousGetMap.containsKey(requestURI)) {
+            log.debug(
+                String.format(
+                    "Using site anonymous ({}) for GET/HEAD requests, site {}",
+                    anonymousGetMap.get(requestURI),
+                    requestURI));
+            return anonymousGetMap.get(requestURI);
+            // Else if there is a default, return its value.
+        } else if (anonymousGetMap.containsKey("default")) {
+            log.debug(
+                String.format(
+                    "Using default anonymous ({}) for GET/HEAD requests, host {}",
+                    anonymousGetMap.get("default"),
+                    requestURI));
+            return anonymousGetMap.get("default");
         }
+        // Else disallow anonymous.
         return false;
     }
 
