@@ -17,7 +17,7 @@ public class SiteTest {
     }
 
     @Test
-    public void testSiteUrl() {
+    public void testSiteUrl() throws Exception {
         assertNull(this.site.getUrl());
         final String testVal = "test";
         this.site.setUrl(testVal);
@@ -25,7 +25,7 @@ public class SiteTest {
     }
 
     @Test
-    public void testSiteAlgorithm() {
+    public void testSiteAlgorithm() throws Exception {
         assertNull(this.site.getAlgorithm());
         final String testVal = "test";
         this.site.setAlgorithm(testVal);
@@ -33,7 +33,7 @@ public class SiteTest {
     }
 
     @Test
-    public void testSiteKey() {
+    public void testSiteKey() throws Exception {
         assertNull(this.site.getKey());
         final String testVal = "test";
         this.site.setKey(testVal);
@@ -41,7 +41,7 @@ public class SiteTest {
     }
 
     @Test
-    public void testSitePath() {
+    public void testSitePath() throws Exception {
         assertNull(this.site.getPath());
         final String testVal = "test";
         this.site.setPath(testVal);
@@ -49,7 +49,7 @@ public class SiteTest {
     }
 
     @Test
-    public void testSiteEncoding() {
+    public void testSiteEncoding() throws Exception {
         assertNull(this.site.getEncoding());
         final String testVal = "test";
         this.site.setEncoding(testVal);
@@ -57,7 +57,7 @@ public class SiteTest {
     }
 
     @Test
-    public void testSiteDefault() {
+    public void testSiteDefault() throws Exception {
         assertFalse(this.site.getDefault());
         this.site.setDefault(true);
         assertTrue(this.site.getDefault());
@@ -66,7 +66,7 @@ public class SiteTest {
     }
 
     @Test
-    public void testSiteAnonymous() {
+    public void testSiteAnonymous() throws Exception {
         assertFalse(this.site.getAnonymous());
         this.site.setAnonymous(true);
         assertTrue(this.site.getAnonymous());
