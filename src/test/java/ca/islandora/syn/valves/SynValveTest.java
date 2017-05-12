@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
-import org.apache.catalina.Host;
 import org.apache.catalina.Realm;
 import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Request;
@@ -67,9 +66,6 @@ public class SynValveTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-    @Mock
-    private Host mockHost;
 
     private static ZoneOffset offset;
 
@@ -372,8 +368,7 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        when(request.getRequestURL()).thenReturn(new StringBuffer(host));
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
@@ -409,8 +404,7 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("HEAD");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        when(request.getRequestURL()).thenReturn(new StringBuffer(host));
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
@@ -447,8 +441,7 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        when(request.getRequestURL()).thenReturn(new StringBuffer(host));
 
         final String testXml = String.join("\n"
             , "<config version='1'>"
@@ -485,8 +478,7 @@ public class SynValveTest {
         when(request.getHeader("Authorization"))
             .thenReturn("Bearer " + token);
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        when(request.getRequestURL()).thenReturn(new StringBuffer(host));
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
@@ -495,7 +487,9 @@ public class SynValveTest {
             , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='false'>"
             , "secretFool"
             , "  </site>"
-            , "  <site algorithm='RS256' encoding='plain' anonymous='true' default='true'/>"
+            , "  <site algorithm='RS256' encoding='plain' anonymous='true' default='true'>"
+            , "masterBlaster"
+            , "  </site>"
             , "</config>"
         );
         Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
@@ -523,8 +517,7 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        when(request.getRequestURL()).thenReturn(new StringBuffer(host));
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
@@ -533,7 +526,9 @@ public class SynValveTest {
             , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='true'>"
             , "secretFool"
             , "  </site>"
-            , "  <site algorithm='RS256' encoding='plain' anonymous='true' default='false'/>"
+            , "  <site algorithm='RS256' encoding='plain' anonymous='false' default='true'>"
+            , "masterBlaster"
+            , "  </site>"
             , "</config>"
         );
         Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
@@ -561,8 +556,7 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        when(request.getRequestURL()).thenReturn(new StringBuffer(host));
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
