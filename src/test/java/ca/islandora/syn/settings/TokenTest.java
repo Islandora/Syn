@@ -1,10 +1,10 @@
 package ca.islandora.syn.settings;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
 
 public class TokenTest {
     Token token;
@@ -40,11 +40,11 @@ public class TokenTest {
 
     @Test
     public void testTokenToken() {
-        assertTrue(this.token.getToken().isEmpty());
+        assertTrue(this.token.getValue().isEmpty());
         final String testVal = "test";
-        this.token.setToken(testVal);
-        assertEquals(testVal, this.token.getToken());
-        this.token.setToken("   " + testVal);
-        assertEquals(testVal, this.token.getToken());
+        this.token.setValue(testVal);
+        assertEquals(testVal, this.token.getValue());
+        this.token.setValue("   " + testVal);
+        assertEquals(testVal, this.token.getValue());
     }
 }

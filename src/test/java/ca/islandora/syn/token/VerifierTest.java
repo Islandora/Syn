@@ -35,13 +35,14 @@ public class VerifierTest {
     @Test
     public void testClaimsWithoutVerify() {
         token = JWT.create()
-                .withArrayClaim("roles", new String[]{"Role1", "Role2"})
-                .withClaim("uid", 1)
-                .withClaim("name", "admin")
-                .withClaim("url", "http://test.com")
+                .withArrayClaim("roles", new String[] { "Role1", "Role2" })
+                .withClaim("webid", 1)
+                .withClaim("sub", "admin")
+                .withClaim("iss", "http://test.com")
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
                 .sign(Algorithm.none());
+
         final Verifier verifier = Verifier.create(token);
         assertEquals(1, verifier.getUid());
         assertEquals("admin", verifier.getName());
@@ -52,17 +53,16 @@ public class VerifierTest {
         assertEquals("Role2", roles.get(1));
     }
 
-    @Test
+    @Test(expected = InvalidTokenException.class)
     public void testClaimsMissing() {
         token = JWT.create()
-                .withClaim("name", "admin")
-                .withClaim("url", "http://test.com")
+                .withClaim("sub", "admin")
+                .withClaim("iss", "http://test.com")
                 .sign(Algorithm.none());
-        final Verifier verifier = Verifier.create(token);
-        assertNull(verifier);
+        Verifier.create(token);
     }
 
-    @Test
+    @Test(expected = InvalidTokenException.class)
     public void testClaimsBad() {
         token = "gibberish";
         final Verifier verifier = Verifier.create(token);
@@ -72,10 +72,10 @@ public class VerifierTest {
     @Test
     public void testClaimsAndVerifyHmac() throws Exception {
         token = JWT.create()
-                .withArrayClaim("roles", new String[]{"Role1", "Role2"})
-                .withClaim("uid", 1)
-                .withClaim("name", "admin")
-                .withClaim("url", "http://test.com")
+                .withArrayClaim("roles", new String[] { "Role1", "Role2" })
+                .withClaim("webid", 1)
+                .withClaim("sub", "admin")
+                .withClaim("iss", "http://test.com")
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
                 .sign(Algorithm.HMAC256("secret"));
@@ -101,10 +101,10 @@ public class VerifierTest {
         final RSAKey publicKey = (RSAKey) pair.getPublic();
 
         token = JWT.create()
-                .withArrayClaim("roles", new String[]{"Role1", "Role2"})
-                .withClaim("uid", 1)
-                .withClaim("name", "admin")
-                .withClaim("url", "http://test.com")
+                .withArrayClaim("roles", new String[] { "Role1", "Role2" })
+                .withClaim("webid", 1)
+                .withClaim("sub", "admin")
+                .withClaim("iss", "http://test.com")
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
                 .sign(Algorithm.RSA512(privateKey));
@@ -125,10 +125,10 @@ public class VerifierTest {
     @Test
     public void testClaimsAndVerifyHmacBadIssueDate() throws Exception {
         token = JWT.create()
-                .withArrayClaim("roles", new String[]{"Role1", "Role2"})
-                .withClaim("uid", 1)
-                .withClaim("name", "admin")
-                .withClaim("url", "http://test.com")
+                .withArrayClaim("roles", new String[] { "Role1", "Role2" })
+                .withClaim("webid", 1)
+                .withClaim("sub", "admin")
+                .withClaim("iss", "http://test.com")
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().minusHours(2).toInstant(offset)))
                 .sign(Algorithm.HMAC256("secret"));

@@ -1,62 +1,60 @@
 package ca.islandora.syn.token;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
+import com.auth0.jwt.interfaces.Claim;
 
 public class Verifier {
 
-    private static final Log log = LogFactory.getLog(Verifier.class);
+    private static final Logger log = getLogger(Verifier.class);
     private String token;
     private JWT jwt;
 
-    private Verifier() { }
+    private Verifier() {
+    }
 
     public static Verifier create(final String token) {
         final Verifier verifier = new Verifier();
+        final List<String> requiredClaims = Arrays.asList("sub", "iss", "webid", "roles", "exp", "iat");
         verifier.token = token;
         try {
             verifier.jwt = JWT.decode(token);
-            if (verifier.jwt.getClaim("uid").isNull()) {
-                return null;
+            final Map<String, Claim> claims = verifier.jwt.getClaims();
+            for (final String claim : requiredClaims) {
+                if (claims.get(claim) == null) {
+                    log.info("Token missing required claim ({})", claim);
+                    throw new InvalidTokenException(
+                            String.format("Token missing required claim ({})", claim));
+                }
             }
-            if (verifier.jwt.getClaim("url").isNull()) {
-                return null;
-            }
-            if (verifier.jwt.getClaim("name").isNull()) {
-                return null;
-            }
-            if (verifier.jwt.getClaim("roles").isNull()) {
-                return null;
-            }
-            if (verifier.jwt.getExpiresAt() == null) {
-                return null;
-            }
-            if (verifier.jwt.getIssuedAt() == null) {
-                return null;
-            }
-        } catch (JWTDecodeException exception) {
+        } catch (final JWTDecodeException exception) {
             log.error("Error decoding token: " + token, exception);
-            return null;
+            throw new InvalidTokenException("Error decoding token: " + token, exception);
         }
         return verifier;
     }
 
     public int getUid() {
-        return this.jwt.getClaim("uid").asInt();
+        return this.jwt.getClaim("webid").asInt();
     }
 
     public String getUrl() {
-        return this.jwt.getClaim("url").asString();
+        return this.jwt.getClaim("iss").asString();
     }
 
     public String getName() {
-        return this.jwt.getClaim("name").asString();
+        return this.jwt.getClaim("sub").asString();
     }
 
     public List<String> getRoles() {
@@ -67,10 +65,11 @@ public class Verifier {
         final JWTVerifier verifier = JWT.require(algorithm).build();
         try {
             verifier.verify(this.token);
-        } catch (JWTVerificationException exception) {
+        } catch (final JWTVerificationException exception) {
             return false;
         }
 
         return true;
     }
+
 }

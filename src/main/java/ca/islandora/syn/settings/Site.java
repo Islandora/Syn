@@ -12,6 +12,7 @@ public class Site {
     public String getUrl() {
         return this.url;
     }
+
     public void setUrl(final String url) {
         this.url = url;
     }
@@ -19,6 +20,7 @@ public class Site {
     public String getAlgorithm() {
         return this.algorithm;
     }
+
     public void setAlgorithm(final String algorithm) {
         this.algorithm = algorithm;
     }
@@ -26,6 +28,7 @@ public class Site {
     public String getKey() {
         return this.key;
     }
+
     public void setKey(final String key) {
         this.key = key;
     }
@@ -33,6 +36,7 @@ public class Site {
     public String getPath() {
         return this.path;
     }
+
     public void setPath(final String path) {
         this.path = path;
     }
@@ -40,6 +44,7 @@ public class Site {
     public String getEncoding() {
         return this.encoding;
     }
+
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
@@ -47,6 +52,7 @@ public class Site {
     public boolean getDefault() {
         return this.defaultItem;
     }
+
     public void setDefault(final boolean defaultItem) {
         this.defaultItem = defaultItem;
     }
@@ -63,7 +69,8 @@ public class Site {
     /**
      * Set allow GET requests with a token that match this site.
      *
-     * @param allowAnonGet boolean whether to allow these requests.
+     * @param allowAnonGet
+     *        boolean whether to allow these requests.
      */
     public void setAnonymous(final boolean allowAnonGet) {
         this.allowAnonymous = allowAnonGet;

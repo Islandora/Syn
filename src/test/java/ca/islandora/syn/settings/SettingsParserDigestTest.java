@@ -5,8 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.io.StringReader;
 
 import org.junit.Test;
 
@@ -14,15 +13,18 @@ public class SettingsParserDigestTest {
 
     @Test
     public void testOneSitePath() throws Exception {
-        final String testXml = String.join("\n"
-            , "<config version=\"12\">"
-            , "  <site url=\"http://test.com\" algorithm=\"RS384\" path=\"test/path.key\" encoding=\"PEM\"/>"
-            , "</config>"
-        );
+        final String testXml = String.join("\n",
+                "---",
+                "version: 1",
+                "site:",
+                "  url: http://test.com",
+                "  algorithm: RS384",
+                "  path: test/path.key",
+                "  encoding: PEM");
 
-        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Config settings = SettingsParser.getSitesObject(stream);
-        assertEquals(12, settings.getVersion());
+        final StringReader stream = new StringReader(testXml);
+        final Config settings = SettingsParser.create(stream).getConfig();
+        assertEquals(1, settings.getVersion());
         assertEquals(1, settings.getSites().size());
 
         final Site site = settings.getSites().get(0);
@@ -30,24 +32,27 @@ public class SettingsParserDigestTest {
         assertEquals("http://test.com", site.getUrl());
         assertEquals("test/path.key", site.getPath());
         assertEquals("PEM", site.getEncoding());
-        assertEquals("", site.getKey());
+        assertNull(site.getKey());
         assertFalse(site.getDefault());
     }
 
     @Test
     public void testOneSiteKey() throws Exception {
-        final String testXml = String.join("\n"
-                , "<config>"
-                , "  <site url=\"http://test.com\" algorithm=\"RS384\" encoding=\"PEM\" default=\"true\">"
-                , "multiline"
-                , "key"
-                , "  </site>"
-                , "</config>"
-        );
+        final String testXml = String.join("\n",
+                "---",
+                "version: 1",
+                "site:",
+                "  url: http://test.com",
+                "  algorithm: RS384",
+                "  encoding: PEM",
+                "  default: true",
+                "  key: |",
+                "    multiline",
+                "    key");
 
-        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Config settings = SettingsParser.getSitesObject(stream);
-        assertEquals(-1, settings.getVersion());
+        final StringReader stream = new StringReader(testXml);
+        final Config settings = SettingsParser.create(stream).getConfig();
+        assertEquals(1, settings.getVersion());
         assertEquals(1, settings.getSites().size());
 
         final Site site = settings.getSites().get(0);
@@ -61,79 +66,80 @@ public class SettingsParserDigestTest {
 
     @Test
     public void testTwoSites() throws Exception {
-        final String testXml = String.join("\n"
-                , "<config>"
-                , "  <site/>"
-                , "  <site/>"
-                , "</config>"
-        );
+        final String testXml = String.join("\n",
+                "---",
+                "version: 1",
+                "site:",
+                "site:");
 
-        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Config settings = SettingsParser.getSitesObject(stream);
+        final StringReader stream = new StringReader(testXml);
+        final Config settings = SettingsParser.create(stream).getConfig();
         assertEquals(2, settings.getSites().size());
     }
 
-    @Test
+    @Test(expected = SettingsParserException.class)
     public void testOneSiteUnexpectedAttribute() throws Exception {
-        final String testXml = String.join("\n"
-                , "<config>"
-                , "  <site unexpected=\"woh\"/>"
-                , "</config>"
-        );
+        final String testXml = String.join("\n",
+                "---",
+                "version: 1",
+                "site:",
+                "  unexpected: woh");
 
-        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Config settings = SettingsParser.getSitesObject(stream);
+        final StringReader stream = new StringReader(testXml);
+        final Config settings = SettingsParser.create(stream).getConfig();
         assertEquals(1, settings.getSites().size());
     }
 
     @Test
-    public void testOneSiteUnexpectedTag() throws Exception {
-        final String testXml = String.join("\n"
-                , "<config>"
-                , "  <islandora/>"
-                , "</config>"
-        );
-
-        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Config settings = SettingsParser.getSitesObject(stream);
-        assertEquals(0, settings.getSites().size())
-;    }
-
-    @Test
     public void testValidAnonymousTrue() throws Exception {
-        final String testXml = "<config>\n" +
-            "  <site url=\"http://test.com\" algorithm=\"RS384\" encoding=\"PEM\" default=\"true\" " +
-            "anonymous=\"true\" />\n" +
-            "</config>";
+        final String testXml = String.join("\n",
+                "---",
+                "version: 1",
+                "site:",
+                "  url: http://test.com",
+                "  algorithm: RS384",
+                "  encoding: PEM",
+                "  default: true",
+                "  anonymous: true");
 
-        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Config settings = SettingsParser.getSitesObject(stream);
+        final StringReader stream = new StringReader(testXml);
+        final Config settings = SettingsParser.create(stream).getConfig();
         final Site sites = settings.getSites().get(0);
         assertTrue("Did not set anonymous property", sites.getAnonymous());
     }
 
     @Test
     public void testValidAnonymousFalse() throws Exception {
-        final String testXml = "<config>\n" +
-            "  <site url=\"http://test.com\" algorithm=\"RS384\" encoding=\"PEM\" default=\"true\" " +
-            "anonymous=\"false\" />\n" +
-            "</config>";
+        final String testXml = String.join("\n",
+                "---",
+                "version: 1",
+                "site:",
+                "  url: http://test.com",
+                "  algorithm: RS384",
+                "  encoding: PEM",
+                "  default: true",
+                "  anonymous: false");
 
-        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Config settings = SettingsParser.getSitesObject(stream);
+        final StringReader stream = new StringReader(testXml);
+        final Config settings = SettingsParser.create(stream).getConfig();
         final Site sites = settings.getSites().get(0);
         assertFalse("Did not set anonymous property", sites.getAnonymous());
     }
 
-    @Test
+    @Test(expected = SettingsParserException.class)
     public void testInvalidAnonymous() throws Exception {
-        final String testXml = "<config>\n" +
-            "  <site url=\"http://test.com\" algorithm=\"RS384\" encoding=\"PEM\" default=\"true\" " +
-            "anonymous=\"whatever\" />\n" +
-            "</config>";
+        final String testXml = String.join("\n",
+                "---",
+                "version: 1",
+                "site:",
+                "  url: http://test.com",
+                "  algorithm: RS384",
+                "  encoding: PEM",
+                "  default: true",
+                "  anonymous: whatever");
 
-        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Config settings = SettingsParser.getSitesObject(stream);
+        final StringReader stream = new StringReader(testXml);
+        final Config settings = SettingsParser.create(stream).getConfig();
         final Site sites = settings.getSites().get(0);
         assertFalse("Did not set anonymous property", sites.getAnonymous());
     }
