@@ -9,7 +9,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,7 +32,12 @@ import ca.islandora.syn.settings.SettingsParser;
 import ca.islandora.syn.settings.Token;
 import ca.islandora.syn.token.InvalidTokenException;
 import ca.islandora.syn.token.Verifier;
-
+/**
+ * The JWT testing filter
+ * @author jonathangreen
+ * @author whikloj
+ *
+ */
 public class SynFilter implements Filter {
 
     private static final Logger LOGGER = getLogger(SynFilter.class);

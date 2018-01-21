@@ -71,6 +71,13 @@ buildscript {
 jar {
     baseName = projectName
     version = projectVersion
+    manifest {
+        attributes("Implementation-Title": baseName,
+            "Implementation-Version": version,
+            "Implementation-Vendor": "Islandora",
+            "Class-Path": configurations.compile.collect { it.getName() }.join(' '))
+    }
+
 }
 
 shadowJar {
