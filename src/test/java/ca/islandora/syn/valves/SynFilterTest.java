@@ -113,7 +113,7 @@ public class SynFilterTest {
     @Ignore
     @Test
     public void loadRelativeSettings() throws Exception {
-        when(config.getInitParameter("settings-path")).thenReturn("/exampleSettings.yaml");
+        when(config.getInitParameter("settings-path")).thenReturn("exampleSettings.yaml");
         synFilter = createFilter();
         final String host = "http://test.com";
         final String username = "bob";
