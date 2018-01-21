@@ -24,8 +24,7 @@ ext {
 		logback : '1.0.13',
 		mockito : '2.7.14',
 		servlet : '3.0.1',
-		slf4j : '1.7.12',
-		yamlbeans : '1.13'
+		slf4j : '1.7.12'
 	]
 }
 
@@ -46,7 +45,7 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: versions.jackson
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: versions.jackson
 
-	testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: versions.logback
+    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: versions.logback
 	
     testCompile group: 'junit', name: 'junit', version: versions.junit
     testCompile group: 'org.mockito', name: 'mockito-core', version: versions.mockito
@@ -55,7 +54,7 @@ dependencies {
 jacocoTestReport {
     reports {
         xml.enabled true
-        html.enabled true
+        html.enabled false
     }
 }
 
