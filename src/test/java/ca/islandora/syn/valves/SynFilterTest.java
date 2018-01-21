@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -88,6 +89,74 @@ public class SynFilterTest {
         final SynFilter synFilter = new SynFilter();
         synFilter.init(config);
         return synFilter;
+    }
+
+    @Test(expected = ServletException.class)
+    public void missingInitParameter() throws Exception {
+        when(config.getInitParameter("settings-path")).thenReturn(null);
+        synFilter = createFilter();
+    }
+
+    @Test(expected = ServletException.class)
+    public void absoluteSettingsDoesNotExist() throws Exception {
+        when(config.getInitParameter("settings-path")).thenReturn("/tmp/fileIsFake");
+        synFilter = createFilter();
+    }
+
+    @Test(expected = ServletException.class)
+    public void relativeSettingsDoesNotExist() throws Exception {
+        when(config.getInitParameter("settings-path")).thenReturn("fileIsFake");
+        synFilter = createFilter();
+    }
+
+    // For some reason files on the classpath are not found???
+    @Ignore
+    @Test
+    public void loadRelativeSettings() throws Exception {
+        when(config.getInitParameter("settings-path")).thenReturn("/exampleSettings.yaml");
+        synFilter = createFilter();
+        final String host = "http://test.com";
+        final String username = "bob";
+        final List<String> finalRoles = Arrays.asList("islandora", host);
+
+        final String token = "Bearer " + JWT
+                .create()
+                .withClaim("webid", 1)
+                .withClaim("sub", username)
+                .withClaim("iss", host)
+                .withArrayClaim("roles", new String[] {})
+                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
+                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
+                .sign(Algorithm.HMAC256("bobPassword"));
+
+        when(request.getHeader("Authorization")).thenReturn(token);
+
+        synFilter.doFilter(request, response, chain);
+
+        verify(chain).doFilter(requestCaptor.capture(), responseCaptor.capture());
+
+        assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
+
+        for (final String role : finalRoles) {
+            assertTrue(requestCaptor.getValue().isUserInRole(role));
+        }
+
+    }
+
+    @Test(expected = ServletException.class)
+    public void settingsParseFail() throws Exception {
+        final String testXml = String.join("\n",
+                "---",
+                "version: bad",
+                "site:",
+                "  url: http://test.com",
+                "  algorithm: HS256",
+                "  encoding: plain",
+                "  anonymous: false",
+                "  key: secret");
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+
+        synFilter = createFilter();
     }
 
     @Test
@@ -601,4 +670,5 @@ public class SynFilterTest {
                 "  value: 1337");
         Files.write(Paths.get(settingsFile.getAbsolutePath()), testXml.getBytes());
     }
+
 }

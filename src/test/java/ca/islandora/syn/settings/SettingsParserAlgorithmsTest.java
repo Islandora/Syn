@@ -1,6 +1,7 @@
 package ca.islandora.syn.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.File;
 import java.io.StringReader;
@@ -40,6 +41,23 @@ public class SettingsParserAlgorithmsTest {
         testOneSiteHmacInlineKey("HS256");
         testOneSiteHmacInlineKey("HS384");
         testOneSiteHmacInlineKey("HS512");
+    }
+
+    @Test
+    public void testUnsupportedAlgorithm() throws Exception {
+        final String testXml = String.join("\n",
+                "---",
+                "version: 1",
+                "site:",
+                "  url: http://test.com",
+                "  algorithm: AES128",
+                "  encoding: plain",
+                "  key: test data");
+
+        final StringReader stream = new StringReader(testXml);
+        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+        assertEquals(0, algorithms.size());
+        assertFalse(algorithms.containsKey("http://test.com"));
     }
 
     @Test(expected = SettingsParserException.class)
