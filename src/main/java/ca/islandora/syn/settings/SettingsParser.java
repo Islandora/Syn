@@ -8,7 +8,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
@@ -42,7 +41,7 @@ public final class SettingsParser {
 
     /**
      * Constructor.
-     * 
+     *
      * @param settings
      *        A Reader object with the configuration in it.
      * @throws Exception
@@ -64,7 +63,7 @@ public final class SettingsParser {
 
     /**
      * Static creator.
-     * 
+     *
      * @param settings
      *        A Reader object with the configuration on it.
      * @return The SettingsParser.
@@ -77,7 +76,7 @@ public final class SettingsParser {
 
     /**
      * Determine the type of key algorithm.
-     * 
+     *
      * @param algorithm
      *        The algorithm name.
      * @return an algorithm.
@@ -93,22 +92,14 @@ public final class SettingsParser {
     }
 
     /**
-     * Expand the site's key path if it is not absolute.
-     * 
+     * Validate the site's key path.
+     *
      * @param site
      *        The site to act on.
      * @return true if key exists.
      */
-    private static boolean validateExpandPath(final Site site) {
-        File file = new File(site.getPath());
-        if (!file.isAbsolute()) {
-            final URL fileUrl = SettingsParser.class.getClassLoader().getResource(site.getPath());
-            if (fileUrl == null) {
-                log.error("Cannot locate resource " + site.getPath() + " on the classpath.");
-                return false;
-            }
-            file = new File(fileUrl.getPath());
-        }
+    private static boolean validatePath(final Site site) {
+        final File file = new File(site.getPath());
         if (!file.exists() || !file.canRead()) {
             log.error("Path does not exist:" + site.getPath() + ". Site ignored.");
             return false;
@@ -119,7 +110,7 @@ public final class SettingsParser {
 
     /**
      * Parse a RSA encoded key and return the algorithm for verifying.
-     * 
+     *
      * @param site
      *        The site to get the key for.
      * @return A RSA algorithm for the site's key.
@@ -174,7 +165,7 @@ public final class SettingsParser {
 
     /**
      * Parse a HMAC encoded key and return the algorithm for verifying.
-     * 
+     *
      * @param site
      *        The site to get the key for.
      * @return A HMAC algorithm for the site's key.
@@ -223,7 +214,7 @@ public final class SettingsParser {
 
     /**
      * Get site keys from loaded Config.
-     * 
+     *
      * @return Map of URLs (or null) and parsed keys for verification.
      */
     public Map<String, Algorithm> getSiteAlgorithms() {
@@ -245,7 +236,7 @@ public final class SettingsParser {
             }
 
             if (site.getPath() != null) {
-                if (!validateExpandPath(site)) {
+                if (!validatePath(site)) {
                     continue;
                 }
             }
@@ -286,7 +277,7 @@ public final class SettingsParser {
 
     /**
      * Get static tokens from the loaded Config.
-     * 
+     *
      * @return Map of token value and Token object.
      */
     public Map<String, Token> getSiteStaticTokens() {
@@ -321,7 +312,7 @@ public final class SettingsParser {
 
     /**
      * Getter for loaded Config object.
-     * 
+     *
      * @return
      */
     public Config getConfig() {

@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -109,43 +108,9 @@ public class SynFilterTest {
         synFilter = createFilter();
     }
 
-    // For some reason files on the classpath are not found???
-    @Ignore
-    @Test
-    public void loadRelativeSettings() throws Exception {
-        when(config.getInitParameter("settings-path")).thenReturn("exampleSettings.yaml");
-        synFilter = createFilter();
-        final String host = "http://test.com";
-        final String username = "bob";
-        final List<String> finalRoles = Arrays.asList("islandora", host);
-
-        final String token = "Bearer " + JWT
-                .create()
-                .withClaim("webid", 1)
-                .withClaim("sub", username)
-                .withClaim("iss", host)
-                .withArrayClaim("roles", new String[] {})
-                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
-                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
-                .sign(Algorithm.HMAC256("bobPassword"));
-
-        when(request.getHeader("Authorization")).thenReturn(token);
-
-        synFilter.doFilter(request, response, chain);
-
-        verify(chain).doFilter(requestCaptor.capture(), responseCaptor.capture());
-
-        assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
-
-        for (final String role : finalRoles) {
-            assertTrue(requestCaptor.getValue().isUserInRole(role));
-        }
-
-    }
-
     @Test(expected = ServletException.class)
     public void settingsParseFail() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: bad",
                 "site:",
@@ -154,7 +119,7 @@ public class SynFilterTest {
                 "  encoding: plain",
                 "  anonymous: false",
                 "  key: secret");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
     }
@@ -186,9 +151,7 @@ public class SynFilterTest {
 
         assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
 
-        for (final String role : finalRoles) {
-            assertTrue(requestCaptor.getValue().isUserInRole(role));
-        }
+        finalRoles.forEach(role -> assertTrue(requestCaptor.getValue().isUserInRole(role)));
 
     }
 
@@ -293,9 +256,7 @@ public class SynFilterTest {
         verify(request).getHeader("Authorization");
         assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
 
-        for (final String role : finalRoles) {
-            assertTrue(requestCaptor.getValue().isUserInRole(role));
-        }
+        finalRoles.forEach(role -> assertTrue(requestCaptor.getValue().isUserInRole(role)));
     }
 
     @Test
@@ -315,7 +276,7 @@ public class SynFilterTest {
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token);
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -324,7 +285,7 @@ public class SynFilterTest {
                 "  encoding: plain",
                 "  anonymous: false",
                 "  key: secret");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         // Recreate because the settings file has changed so we need to run init again.
         synFilter = createFilter();
@@ -352,7 +313,7 @@ public class SynFilterTest {
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token);
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -361,7 +322,7 @@ public class SynFilterTest {
                 "  encoding: plain",
                 "  anonymous: false",
                 "  key: secretFool");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
 
@@ -371,9 +332,7 @@ public class SynFilterTest {
         assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
         verify(request).getHeader("Authorization");
 
-        for (final String role : finalRoles) {
-            assertTrue(requestCaptor.getValue().isUserInRole(role));
-        }
+        finalRoles.forEach(role -> assertTrue(requestCaptor.getValue().isUserInRole(role)));
     }
 
     @Test
@@ -386,7 +345,7 @@ public class SynFilterTest {
         when(request.getMethod()).thenReturn("GET");
         when(request.getServerName()).thenReturn(servername);
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -395,7 +354,7 @@ public class SynFilterTest {
                 "  encoding: plain",
                 "  anonymous: true",
                 "  key: secretFool");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
         synFilter.doFilter(request, response, chain);
@@ -403,9 +362,7 @@ public class SynFilterTest {
         verify(chain).doFilter(requestCaptor.capture(), responseCaptor.capture());
 
         assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
-        for (final String role : finalRoles) {
-            assertTrue(requestCaptor.getValue().isUserInRole(role));
-        }
+        finalRoles.forEach(role -> assertTrue(requestCaptor.getValue().isUserInRole(role)));
     }
 
     @Test
@@ -418,7 +375,7 @@ public class SynFilterTest {
         when(request.getMethod()).thenReturn("HEAD");
         when(request.getServerName()).thenReturn(servername);
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -427,7 +384,7 @@ public class SynFilterTest {
                 "  encoding: plain",
                 "  anonymous: true",
                 "  key: secretFool");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
         synFilter.doFilter(request, response, chain);
@@ -435,9 +392,7 @@ public class SynFilterTest {
         verify(chain).doFilter(requestCaptor.capture(), responseCaptor.capture());
 
         assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
-        for (final String role : finalRoles) {
-            assertTrue(requestCaptor.getValue().isUserInRole(role));
-        }
+        finalRoles.forEach(role -> assertTrue(requestCaptor.getValue().isUserInRole(role)));
     }
 
     @Test
@@ -448,7 +403,7 @@ public class SynFilterTest {
         when(request.getMethod()).thenReturn("GET");
         when(request.getServerName()).thenReturn(servername);
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -456,7 +411,7 @@ public class SynFilterTest {
                 "  algorithm: HS256",
                 "  encoding: plain",
                 "  key: secretFool");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
         synFilter.doFilter(request, response, chain);
@@ -484,7 +439,7 @@ public class SynFilterTest {
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token);
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -498,7 +453,7 @@ public class SynFilterTest {
                 "  encoding: plain",
                 "  anonymous: true",
                 "  default: true");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
         synFilter.doFilter(request, response, chain);
@@ -506,9 +461,7 @@ public class SynFilterTest {
         verify(chain).doFilter(requestCaptor.capture(), responseCaptor.capture());
 
         assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
-        for (final String role : finalRoles) {
-            assertTrue(requestCaptor.getValue().isUserInRole(role));
-        }
+        finalRoles.forEach(role -> assertTrue(requestCaptor.getValue().isUserInRole(role)));
     }
 
     @Test
@@ -529,7 +482,7 @@ public class SynFilterTest {
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token);
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -543,7 +496,7 @@ public class SynFilterTest {
                 "  encoding: plain",
                 "  anonymous: true",
                 "  default: true");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
         synFilter.doFilter(request, response, chain);
@@ -562,7 +515,7 @@ public class SynFilterTest {
         when(request.getMethod()).thenReturn("GET");
         when(request.getServerName()).thenReturn(servername);
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -576,7 +529,7 @@ public class SynFilterTest {
                 "  encoding: plain",
                 "  anonymous: false",
                 "  default: true");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
         synFilter.doFilter(request, response, chain);
@@ -584,9 +537,7 @@ public class SynFilterTest {
         verify(chain).doFilter(requestCaptor.capture(), responseCaptor.capture());
 
         assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
-        for (final String role : finalRoles) {
-            assertTrue(requestCaptor.getValue().isUserInRole(role));
-        }
+        finalRoles.forEach(role -> assertTrue(requestCaptor.getValue().isUserInRole(role)));
     }
 
     @Test
@@ -599,7 +550,7 @@ public class SynFilterTest {
         when(request.getMethod()).thenReturn("GET");
         when(request.getServerName()).thenReturn(servername);
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -607,7 +558,7 @@ public class SynFilterTest {
                 "  encoding: plain",
                 "  anonymous: true",
                 "  default: true");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
         synFilter.doFilter(request, response, chain);
@@ -615,9 +566,7 @@ public class SynFilterTest {
         verify(chain).doFilter(requestCaptor.capture(), responseCaptor.capture());
 
         assertEquals(username, requestCaptor.getValue().getUserPrincipal().getName());
-        for (final String role : finalRoles) {
-            assertTrue(requestCaptor.getValue().isUserInRole(role));
-        }
+        finalRoles.forEach(role -> assertTrue(requestCaptor.getValue().isUserInRole(role)));
     }
 
     @Test
@@ -636,14 +585,14 @@ public class SynFilterTest {
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token + "s");
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
                 "  url: " + host,
                 "  algorithm: HS256",
                 "  encoding: plain");
-        Files.write(Paths.get(this.settings.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(this.settings.getAbsolutePath()), testYaml.getBytes());
 
         synFilter = createFilter();
         synFilter.doFilter(request, response, chain);
@@ -653,7 +602,7 @@ public class SynFilterTest {
     }
 
     private void createSettings(final File settingsFile) throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -668,7 +617,7 @@ public class SynFilterTest {
                 "  key: secret2",
                 "token:",
                 "  value: 1337");
-        Files.write(Paths.get(settingsFile.getAbsolutePath()), testXml.getBytes());
+        Files.write(Paths.get(settingsFile.getAbsolutePath()), testYaml.getBytes());
     }
 
 }

@@ -11,7 +11,7 @@ public class SettingsParserAnonymousTest {
 
     @Test
     public void testSiteAnonymousOn() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -21,16 +21,17 @@ public class SettingsParserAnonymousTest {
                 "  anonymous: true",
                 "  key: test data");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Boolean> anonymous = SettingsParser.create(stream).getSiteAllowAnonymous();
-        assertEquals(1, anonymous.size());
-        assertEquals(true, anonymous.containsKey("http://test.com"));
-        assertEquals(true, anonymous.get("http://test.com"));
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Boolean> anonymous = SettingsParser.create(stream).getSiteAllowAnonymous();
+            assertEquals(1, anonymous.size());
+            assertEquals(true, anonymous.containsKey("http://test.com"));
+            assertEquals(true, anonymous.get("http://test.com"));
+        }
     }
 
     @Test
     public void testSiteMultipleAnonymousTest() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -46,18 +47,19 @@ public class SettingsParserAnonymousTest {
                 "  anonymous: false",
                 "  key: test data");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Boolean> anonymous = SettingsParser.create(stream).getSiteAllowAnonymous();
-        assertEquals(2, anonymous.size());
-        assertEquals(true, anonymous.containsKey("http://test.com"));
-        assertEquals(true, anonymous.get("http://test.com"));
-        assertEquals(true, anonymous.containsKey("http://test2.com"));
-        assertEquals(false, anonymous.get("http://test2.com"));
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Boolean> anonymous = SettingsParser.create(stream).getSiteAllowAnonymous();
+            assertEquals(2, anonymous.size());
+            assertEquals(true, anonymous.containsKey("http://test.com"));
+            assertEquals(true, anonymous.get("http://test.com"));
+            assertEquals(true, anonymous.containsKey("http://test2.com"));
+            assertEquals(false, anonymous.get("http://test2.com"));
+        }
     }
 
     @Test
     public void testDefaultMultipleAnonymousTest() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -78,14 +80,15 @@ public class SettingsParserAnonymousTest {
                 "  anonymous: true",
                 "  default: true");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Boolean> anonymous = SettingsParser.create(stream).getSiteAllowAnonymous();
-        assertEquals(3, anonymous.size());
-        assertEquals(true, anonymous.containsKey("http://test.com"));
-        assertEquals(true, anonymous.get("http://test.com"));
-        assertEquals(true, anonymous.containsKey("http://test2.com"));
-        assertEquals(false, anonymous.get("http://test2.com"));
-        assertEquals(true, anonymous.containsKey("default"));
-        assertEquals(true, anonymous.get("default"));
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Boolean> anonymous = SettingsParser.create(stream).getSiteAllowAnonymous();
+            assertEquals(3, anonymous.size());
+            assertEquals(true, anonymous.containsKey("http://test.com"));
+            assertEquals(true, anonymous.get("http://test.com"));
+            assertEquals(true, anonymous.containsKey("http://test2.com"));
+            assertEquals(false, anonymous.get("http://test2.com"));
+            assertEquals(true, anonymous.containsKey("default"));
+            assertEquals(true, anonymous.get("default"));
+        }
     }
 }

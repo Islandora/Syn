@@ -20,7 +20,7 @@ public class SettingsParserAlgorithmsTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private void testOneSiteHmacInlineKey(final String algorithm) throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -29,11 +29,12 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: plain",
                 "  key: test data");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(1, algorithms.size());
-        assertEquals(true, algorithms.containsKey("http://test.com"));
-        assertEquals(algorithm, algorithms.get("http://test.com").getName());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(1, algorithms.size());
+            assertEquals(true, algorithms.containsKey("http://test.com"));
+            assertEquals(algorithm, algorithms.get("http://test.com").getName());
+        }
     }
 
     @Test
@@ -45,7 +46,7 @@ public class SettingsParserAlgorithmsTest {
 
     @Test
     public void testUnsupportedAlgorithm() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -54,15 +55,16 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: plain",
                 "  key: test data");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(0, algorithms.size());
-        assertFalse(algorithms.containsKey("http://test.com"));
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(0, algorithms.size());
+            assertFalse(algorithms.containsKey("http://test.com"));
+        }
     }
 
     @Test(expected = SettingsParserException.class)
     public void testInvalidSitesVersion() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 2",
                 "site:",
@@ -71,13 +73,14 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: plain",
                 "  key: test data");
 
-        final StringReader stream = new StringReader(testXml);
-        SettingsParser.create(stream).getSiteAlgorithms();
+        try (final StringReader stream = new StringReader(testYaml)) {
+            SettingsParser.create(stream).getSiteAlgorithms();
+        }
     }
 
     @Test
     public void testOneSiteHmacBase64() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -86,14 +89,15 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: base64",
                 "  key: am9uYXRoYW4gaXMgYXdlc29tZQ==");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(1, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(1, algorithms.size());
+        }
     }
 
     @Test
     public void testOneSiteHmacInvalidBase64() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -102,14 +106,15 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: base64",
                 "  key: this is invalid base64");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(0, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(0, algorithms.size());
+        }
     }
 
     @Test
     public void testOneSiteHmacInvalidEncoding() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -118,16 +123,17 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: badalgorithm",
                 "  key: this is invalid base64");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(0, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(0, algorithms.size());
+        }
     }
 
     private void testOneSiteHmacFileKey(final String algorithm) throws Exception {
         final File key = temporaryFolder.newFile();
         final String path = key.getAbsolutePath();
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -136,11 +142,12 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: plain",
                 "  path: " + path);
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(1, algorithms.size());
-        assertEquals(true, algorithms.containsKey("http://test.com"));
-        assertEquals(algorithm, algorithms.get("http://test.com").getName());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(1, algorithms.size());
+            assertEquals(true, algorithms.containsKey("http://test.com"));
+            assertEquals(algorithm, algorithms.get("http://test.com").getName());
+        }
     }
 
     @Test
@@ -152,7 +159,7 @@ public class SettingsParserAlgorithmsTest {
 
     @Test
     public void testSiteBothInlineAndPath() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -162,14 +169,15 @@ public class SettingsParserAlgorithmsTest {
                 "  path: foo",
                 "  key: test data");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(0, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(0, algorithms.size());
+        }
     }
 
     @Test
     public void testSiteNeitherInlineAndPath() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -177,14 +185,15 @@ public class SettingsParserAlgorithmsTest {
                 "  algorithm: HS384",
                 "  encoding: plain");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(0, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(0, algorithms.size());
+        }
     }
 
     @Test
     public void testSiteInvalidPath() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -193,14 +202,15 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: plain",
                 "  path: foo");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(0, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(0, algorithms.size());
+        }
     }
 
     @Test
     public void testSiteNoUrlDefault() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -209,14 +219,15 @@ public class SettingsParserAlgorithmsTest {
                 "  default: true",
                 "  key: test data");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(1, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(1, algorithms.size());
+        }
     }
 
     @Test
     public void testSiteNoUrl() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -224,13 +235,14 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: plain",
                 "  key: test data");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(0, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(0, algorithms.size());
+        }
     }
 
     private void testOneSiteRsaInlineKey(final String algorithm) throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -245,11 +257,12 @@ public class SettingsParserAlgorithmsTest {
                 "    KOT4nEF7MBGyOSP3KQIDAQAB",
                 "    -----END PUBLIC KEY-----");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(1, algorithms.size());
-        assertEquals(true, algorithms.containsKey("http://test.com"));
-        assertEquals(algorithm, algorithms.get("http://test.com").getName());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(1, algorithms.size());
+            assertEquals(true, algorithms.containsKey("http://test.com"));
+            assertEquals(algorithm, algorithms.get("http://test.com").getName());
+        }
     }
 
     @Test
@@ -271,7 +284,7 @@ public class SettingsParserAlgorithmsTest {
 
         Files.write(Paths.get(path), pemPublicKey.getBytes());
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -280,11 +293,12 @@ public class SettingsParserAlgorithmsTest {
                 "  encoding: PEM",
                 "  path: " + path);
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(1, algorithms.size());
-        assertEquals(true, algorithms.containsKey("http://test.com"));
-        assertEquals(algorithm, algorithms.get("http://test.com").getName());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(1, algorithms.size());
+            assertEquals(true, algorithms.containsKey("http://test.com"));
+            assertEquals(algorithm, algorithms.get("http://test.com").getName());
+        }
     }
 
     @Test
@@ -296,7 +310,7 @@ public class SettingsParserAlgorithmsTest {
 
     @Test
     public void testOneSiteAllRsaInvalidEncoding() throws Exception {
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -306,9 +320,10 @@ public class SettingsParserAlgorithmsTest {
                 "  key: |",
                 "    -----BEGIN PUBLIC KEY-----");
 
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(0, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(0, algorithms.size());
+        }
     }
 
     @Test
@@ -324,7 +339,7 @@ public class SettingsParserAlgorithmsTest {
 
         Files.write(Paths.get(path), pemPublicKey.getBytes());
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -337,9 +352,10 @@ public class SettingsParserAlgorithmsTest {
                 "  path: " + path,
                 "  encoding: plain",
                 "  default: true");
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(1, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(1, algorithms.size());
+        }
     }
 
     @Test
@@ -355,7 +371,7 @@ public class SettingsParserAlgorithmsTest {
 
         Files.write(Paths.get(path), pemPublicKey.getBytes());
 
-        final String testXml = String.join("\n",
+        final String testYaml = String.join("\n",
                 "---",
                 "version: 1",
                 "site:",
@@ -363,8 +379,9 @@ public class SettingsParserAlgorithmsTest {
                 "  path: " + path,
                 "  encoding: PEM",
                 "  default: true");
-        final StringReader stream = new StringReader(testXml);
-        final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
-        assertEquals(0, algorithms.size());
+        try (final StringReader stream = new StringReader(testYaml)) {
+            final Map<String, Algorithm> algorithms = SettingsParser.create(stream).getSiteAlgorithms();
+            assertEquals(0, algorithms.size());
+        }
     }
 }

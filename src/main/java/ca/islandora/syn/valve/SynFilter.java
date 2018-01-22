@@ -7,7 +7,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +31,10 @@ import ca.islandora.syn.settings.SettingsParser;
 import ca.islandora.syn.settings.Token;
 import ca.islandora.syn.token.InvalidTokenException;
 import ca.islandora.syn.token.Verifier;
+
 /**
  * The JWT testing filter
+ *
  * @author jonathangreen
  * @author whikloj
  *
@@ -64,23 +65,15 @@ public class SynFilter implements Filter {
             throw new ServletException("settings-path init parameter must have location of syn-settings.yml file.");
         }
         // Validate the existence of our database file
-        File file = new File(settingsPath);
-        if (!file.isAbsolute()) {
-            final URL settingsUrl = SynFilter.class.getClassLoader().getResource(settingsPath);
-            if (settingsUrl == null) {
-                LOGGER.error("Error locating settings file :" + settingsPath);
-                throw new ServletException("Cannot find Syn settings from path: " + settingsPath);
-            }
-            file = new File(settingsUrl.getPath());
-        }
+        final File file = new File(settingsPath);
         if (!file.exists() || !file.canRead()) {
             LOGGER.error("Unable to load Syn configuration from path: " + settingsPath);
             throw new ServletException("Unable to load Syn configuration from path: " + settingsPath);
         }
 
         // Load the contents of the database file
-        try {
-            final SettingsParser parser = SettingsParser.create(new FileReader(file));
+        try (final FileReader settings = new FileReader(file)) {
+            final SettingsParser parser = SettingsParser.create(settings);
             algorithmMap = parser.getSiteAlgorithms();
             staticTokenMap = parser.getSiteStaticTokens();
             anonymousMap = parser.getSiteAllowAnonymous();
