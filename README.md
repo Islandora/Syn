@@ -1,5 +1,5 @@
 # ![Syn](https://cloud.githubusercontent.com/assets/2371345/23724175/2998ecb0-0422-11e7-9009-aee3f129633f.png) Syn
-[![Build Status](https://travis-ci.org/Islandora-CLAW/Syn.svg?branch=master)](https://travis-ci.org/Islandora-CLAW/Syn)
+[![Build Status](https://travis-ci.com/Islandora-CLAW/Syn.svg?branch=master)](https://travis-ci.com/Islandora-CLAW/Syn)
 [![Contribution Guidelines](http://img.shields.io/badge/CONTRIBUTING-Guidelines-blue.svg)](./CONTRIBUTING.md)
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
 [![codecov](https://codecov.io/gh/Islandora-CLAW/Syn/branch/master/graph/badge.svg)](https://codecov.io/gh/Islandora-CLAW/Syn)
