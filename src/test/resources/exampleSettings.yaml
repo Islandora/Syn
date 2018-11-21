@@ -1,0 +1,4 @@
+version: 1
+token:
+  user: bob
+  value: bobsPassword

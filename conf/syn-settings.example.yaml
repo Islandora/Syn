@@ -1,0 +1,43 @@
+version: 1 
+# Sites can be specified with a Key inline, or with a reference to a key 
+# stored in a file. Both are shown in examples below.
+#
+# The encoding parameter depends on what algorithm is chosen. 
+# HS256, HS384, HS512 support: plain and base64.
+# RS256, RS384, RS512 support: PEM.
+
+# A site with an inline key
+site:
+  url: http://test.com
+  algorithm: HS256
+  encoding: plain
+  key: my secret key
+
+# A site with a key stored in a file
+site:
+  url: http://test2.com
+  algorithm: HS256
+  encoding: base64
+  path: /somewhere/on/filesystem.key
+
+# A site that allows all GET/HEAD requests
+site:
+  url: http://test3.com
+  algorithm: HS256
+  encoding: plain
+  anonymous: true
+
+#  This is how you specify a default site, which will be chosen if no 
+#  other site matches the JWT url claim
+site:
+  algorithm: RS256
+  encoding: PEM
+  path: /somewhere/on/filesystem.key
+  default: true
+
+#  This lets you specify a master token for testing. This should be used with care, as it gives anyone
+#  with this token unlimited access to your repository.
+token:
+  user: test
+  roles: role1,role2,role3
+  value: my super secret token

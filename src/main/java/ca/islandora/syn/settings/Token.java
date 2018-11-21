@@ -6,8 +6,8 @@ import java.util.List;
 
 public class Token {
     private String user = "islandoraAdmin";
-    private List<String> roles = new ArrayList<>();
-    private String token = "";
+    private final List<String> roles = new ArrayList<>();
+    private String value = "";
 
     public String getUser() {
         return user;
@@ -25,15 +25,15 @@ public class Token {
         this.roles.clear();
         if (!roles.isEmpty()) {
             final String[] parts = roles.split(",");
-            Collections.addAll(this.roles,parts);
+            Collections.addAll(this.roles, parts);
         }
     }
 
-    public String getToken() {
-        return token;
+    public String getValue() {
+        return value;
     }
 
-    public void setToken(final String token) {
-        this.token = token.trim();
+    public void setValue(final String token) {
+        this.value = token.trim();
     }
 }
