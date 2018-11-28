@@ -6,7 +6,7 @@
 
 ## Description
 
-A ServletFilter that authenticates the JWT tokens created by Islandora in order to provide sessionless Authentication for Fedora4. Named after the Norse goddess [Syn](https://en.wikipedia.org/wiki/Syn_(goddess)).
+A valve for Tomcat8 that authenticates the JWT tokens created by Islandora in order to provide sessionless Authentication for Fedora4. Named after the Norse goddess [Syn](https://en.wikipedia.org/wiki/Syn_(goddess)).
 
 ## Building
 
@@ -15,39 +15,54 @@ This project requires Java 8 and can be built with [Gradle](https://gradle.org).
 ## Installing
 
 ### Copy Syn JAR
-Copy the JAR that was built above from `build/libs/islandora-syn-X.X.X-all.jar` and place into `$TOMCAT_HOME/lib` directory or the individual webapps `WEB-INF/lib` directory. Can be found in Ubuntu at: `/var/lib/tomcat8/lib/`. Note that this JAR is built to contain all the dependancies.
+Copy the JAR that was built above from `build/libs/islandora-syn-X.X.X-all.jar` and place into `$TOMCAT_HOME/lib` directory. Can be found in Ubuntu at: `/var/lib/tomcat8/lib/`. Note that this JAR is built to contain all the dependancies.
 
-### Register Filter
-Now register the filter in web applications' `web.xml` file by adding something like.
+### Register Valve
+Now register the valve in Tomcat configuration file.
+In Ubuntu this file is located at: `/var/lib/tomcat8/conf/context.xml` 
 
 ```xml
-  <filter>
-    <filter-name>SynFilter</filter-name>
-    <filter-class>ca.islandora.syn.valve.SynFilter</filter-class>
-    <init-param>
-      <param-name>settings-path</param-name>
-      <param-value>/var/lib/tomcat8/conf/syn-settings.yml</param-value>
-    </init-param>
-  </filter>
-
-  <filter-mapping>
-    <filter-name>SynFilter</filter-name>
-    <url-pattern>/*</url-pattern>
-  </filter-mapping>
+<Valve className="ca.islandora.syn.valve.SynValve" 
+	  		 pathname="conf/syn-settings.xml" />
 ```
 
-Where the **settings-path** `param-value` is the the location of the settings file.
+where:
+* ***pathname***: The location of the settings file. Defaults to `$CATALINA_BASE/conf/syn-settings.xml`.
+
+### Enable `security-contraint`
+The valve checks if requested url is under **security contraints**. So, valve will activate only if the Fedora4  *web.xml* file contains something like:
+
+```xml
+<security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Fedora4</web-resource-name>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+        <role-name>*</role-name>
+    </auth-constraint>
+    <user-data-constraint>
+      <transport-guarantee>NONE</transport-guarantee>
+    </user-data-constraint>
+</security-constraint>
+<security-role>
+    <role-name>islandora</role-name>
+</security-role>
+<login-config>
+  <auth-method>BASIC</auth-method>
+  <realm-name>fcrepo</realm-name>
+</login-config>
+```
 
 On ubuntu this file can be found at: 
 `/var/lib/tomcat8/webapps/fcrepo/WEB-INF/web.xml`
 
 ### Setup Syn Configuration
-Modify the [example configuration](./conf/syn-settings.example.yaml) and move it to: `$CATALINA_BASE/conf/syn-settings.xml`. Then use this path when configuring the application's filter `init-param`s.
+Modify the [example configuration](./conf/syn-settings.example.xml) and move it to: `$CATALINA_BASE/conf/syn-settings.xml`.
 
 ## Maintainers
 
 * [Jonathan Green](https://github.com/jonathangreen/)
-* [Jared Whiklo](https://github.com/whikloj)
 
 ## Development
 
