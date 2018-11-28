@@ -7,26 +7,12 @@ apply plugin: 'jacoco'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 def projectName = 'islandora-syn'
-def projectVersion = '0.1.0'
+def projectVersion = '0.3.0'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 def tomcatVersion = '8.0.28'
-
-ext {
-
-	versions = [
-		bcprov : '1.56',
-		jackson : '2.9.2',
-		javaJwt : '3.1.0',
-		junit : '4.12',
-		logback : '1.0.13',
-		mockito : '2.7.14',
-		servlet : '3.0.1',
-		slf4j : '1.7.12'
-	]
-}
 
 checkstyle {
     configFile = rootProject.file('gradle/checkstyle/checkstyle.xml')
@@ -38,17 +24,15 @@ repositories {
 }
 
 dependencies {
-    compile group: 'com.auth0', name: 'java-jwt', version: versions.javaJwt
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: versions.bcprov
-    compile group: 'org.slf4j', name: 'slf4j-api', version: versions.slf4j
-    compile group: 'javax.servlet', name: 'javax.servlet-api', version: versions.servlet
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: versions.jackson
-    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: versions.jackson
+    compile group: 'com.auth0', name: 'java-jwt', version:'3.1.0'
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version:'1.56'
+    compileOnly group: 'org.apache.tomcat', name: 'tomcat-catalina', version:tomcatVersion
+    compileOnly group: 'org.apache.tomcat', name: 'tomcat-coyote', version:tomcatVersion
 
-    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: versions.logback
-	
-    testCompile group: 'junit', name: 'junit', version: versions.junit
-    testCompile group: 'org.mockito', name: 'mockito-core', version: versions.mockito
+    testCompile group: 'junit', name: 'junit', version:'4.12'
+    testCompile group: 'org.mockito', name: 'mockito-core', version:'2.7.14'
+    testCompile group: 'org.apache.tomcat', name: 'tomcat-catalina', version:tomcatVersion
+    testCompile group: 'org.apache.tomcat', name: 'tomcat-coyote', version:tomcatVersion
 }
 
 jacocoTestReport {
@@ -70,13 +54,6 @@ buildscript {
 jar {
     baseName = projectName
     version = projectVersion
-    manifest {
-        attributes("Implementation-Title": baseName,
-            "Implementation-Version": version,
-            "Implementation-Vendor": "Islandora",
-            "Class-Path": configurations.compile.collect { it.getName() }.join(' '))
-    }
-
 }
 
 shadowJar {
@@ -85,14 +62,3 @@ shadowJar {
 }
 
 assemble.dependsOn(shadowJar);
-
-test {
-   testLogging {
-        // Make sure output from
-        // standard out or error is shown
-        // in Gradle output.
-        // showStandardStreams = true
-        //events 'standard_out'
-        exceptionFormat = 'full'
-    }
-}
