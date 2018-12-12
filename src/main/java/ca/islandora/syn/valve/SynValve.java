@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -17,10 +18,12 @@ import org.apache.catalina.realm.GenericPrincipal;
 import org.apache.catalina.valves.ValveBase;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.apache.tomcat.util.buf.MessageBytes;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 
 import com.auth0.jwt.algorithms.Algorithm;
 
+import ca.islandora.syn.settings.Config;
 import ca.islandora.syn.settings.SettingsParser;
 import ca.islandora.syn.settings.Token;
 import ca.islandora.syn.token.Verifier;
@@ -29,10 +32,20 @@ public class SynValve extends ValveBase {
 
     private String pathname = "conf/syn-settings.xml";
     private static final Log log = LogFactory.getLog(SynValve.class);
+    private static final List<String> adminRole = new ArrayList<>();
+    private static final List<String> userRole = new ArrayList<>();
+
+    static {
+        adminRole.add("fedoraAdmin");
+        userRole.add("fedoraUser");
+    }
+
+    private static final String adminUserRole = "fedoraAdmin";
+
     private Map<String, Algorithm> algorithmMap = null;
     private Map<String, Token> staticTokenMap = null;
-
     private Map<String, Boolean> anonymousGetMap = null;
+    private String roleHeader = null;
 
     @Override
     public void invoke(final Request request, final Response response)
@@ -50,14 +63,55 @@ public class SynValve extends ValveBase {
         }
     }
 
+    /**
+     * Does the current context have an auth-constraint
+     *
+     * @param constraints
+     *        security constraints for the current context and request
+     * @return boolean if authentication is required.
+     */
     private boolean hasAuthConstraint(final SecurityConstraint[] constraints) {
         boolean authConstraint = true;
-        for (SecurityConstraint securityConstraint : constraints) {
+        for (final SecurityConstraint securityConstraint : constraints) {
             authConstraint &= securityConstraint.getAuthConstraint();
         }
         return authConstraint;
     }
 
+    /**
+     * Do the authentication
+     *
+     * @param request
+     *        the current request
+     * @param response
+     *        the current response
+     * @throws IOException
+     * @throws ServletException
+     */
+    private void handleAuthentication(final Request request, final Response response)
+            throws IOException, ServletException {
+        final String requestHost = request.getScheme() + "://" + request.getServerName() +
+                (request.getServerPort() != 80 ? ":" + request.getServerPort() : "");
+        if ((request.getMethod().equalsIgnoreCase("GET") ||
+                request.getMethod().equals("HEAD")) &&
+                allowGetRequests(requestHost)) {
+            // Skip authentication
+            setAnonymousRoles(request);
+            this.getNext().invoke(request, response);
+        } else if (doAuthentication(request)) {
+            this.getNext().invoke(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token authentication failed.");
+        }
+    }
+
+    /**
+     * Do the authentication altering the request as necessary
+     *
+     * @param request
+     *        the incoming request
+     * @return true if we are authorized, false otherwise.
+     */
     private boolean doAuthentication(final Request request) {
         String token = request.getHeader("Authorization");
         if (token == null) {
@@ -112,46 +166,52 @@ public class SynValve extends ValveBase {
         }
     }
 
+    /**
+     * Set principal and header with roles for anoymous
+     *
+     * @param request
+     *        the incoming request
+     */
     private void setAnonymousRoles(final Request request) {
         final List<String> roles = new ArrayList<String>();
         roles.add("anonymous");
         roles.add("islandora");
         final String name = "anonymous";
-        final GenericPrincipal principal = new GenericPrincipal(name, null, roles);
-        request.setUserPrincipal(principal);
+        addToRequest(request, name, roles);
     }
 
+    /**
+     * Set principal and header with roles on the request from a static configured
+     * token
+     *
+     * @param request
+     *        the incoming request
+     * @param token
+     *        the static token
+     */
     private void setUserRolesFromStaticToken(final Request request, final Token token) {
         final List<String> roles = token.getRoles();
         roles.add("islandora");
         final String name = token.getUser();
-        final GenericPrincipal principal = new GenericPrincipal(name, null, roles);
-        request.setUserPrincipal(principal);
+        addToRequest(request, name, roles);
     }
 
+    /**
+     * Set principal and header with roles on the request from the JWT token
+     *
+     * @param request
+     *        the incoming request
+     * @param verifier
+     *        the JWT verifier
+     */
     private void setUserRolesFromToken(final Request request, final Verifier verifier) {
         final List<String> roles = verifier.getRoles();
         roles.add("islandora");
         roles.add(verifier.getUrl());
         final String name = verifier.getName();
-        final GenericPrincipal principal = new GenericPrincipal(name, null, roles);
-        request.setUserPrincipal(principal);
+        addToRequest(request, name, roles);
     }
 
-    private void handleAuthentication(final Request request, final Response response)
-            throws IOException, ServletException {
-        if ((request.getMethod().equalsIgnoreCase("GET") ||
-            request.getMethod().equals("HEAD")) &&
-            allowGetRequests(request.getHost().toString())) {
-            // Skip authentication
-            setAnonymousRoles(request);
-            this.getNext().invoke(request, response);
-        } else if (doAuthentication(request)) {
-            this.getNext().invoke(request, response);
-        } else {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token authentication failed.");
-        }
-    }
 
     /**
      * Do the logic of allowing GET/HEAD requests.
@@ -181,9 +241,42 @@ public class SynValve extends ValveBase {
         return false;
     }
 
+    /**
+     * Add all roles to a pre-configured header and set the single role to either
+     * fedoraUser or fedoraAdmin based on whether they have an existing role that
+     * matches `adminUserRole`
+     *
+     * @param request
+     *        the incoming request
+     * @param username
+     *        the username to set on the principal
+     * @param roles
+     *        the roles to set on the HTTP header
+     */
+    private void addToRequest(final Request request, final String username, final List<String> roles) {
+        final MessageBytes mb = request.getCoyoteRequest().getMimeHeaders().addValue(this.roleHeader);
+        mb.setString(String.join(",", roles));
+        final List<String> fedoraRole = Arrays
+                .asList(roles.stream().anyMatch(t -> t.equalsIgnoreCase(adminUserRole)) ? "fedoraAdmin" : "fedoraUser");
+        final GenericPrincipal principal = new GenericPrincipal(username, null, fedoraRole);
+        request.setUserPrincipal(principal);
+    }
+
+    /**
+     * Return the pathname to the syn-settings.xml file.
+     *
+     * @return the path
+     */
     public String getPathname() {
         return pathname;
     }
+
+    /**
+     * Set the pathname of the syn-settings.xml file
+     *
+     * If you add pathname="" to your Valve config with your syn-settings location it
+     * should get set here.
+     */
     public void setPathname(final String pathname) {
         this.pathname = pathname;
     }
@@ -203,10 +296,12 @@ public class SynValve extends ValveBase {
 
         // Load the contents of the database file
         try {
-            this.algorithmMap = SettingsParser.getSiteAlgorithms(new FileInputStream(file));
-            this.staticTokenMap = SettingsParser.getSiteStaticTokens(new FileInputStream(file));
-            this.anonymousGetMap = SettingsParser.getSiteAllowAnonymous(new FileInputStream(file));
-        } catch (Exception e) {
+            final Config sites = SettingsParser.getSites(new FileInputStream(file));
+            this.algorithmMap = SettingsParser.getSiteAlgorithms(sites);
+            this.staticTokenMap = SettingsParser.getSiteStaticTokens(sites);
+            this.anonymousGetMap = SettingsParser.getSiteAllowAnonymous(sites);
+            this.roleHeader = sites.getHeader();
+        } catch (final Exception e) {
             throw new LifecycleException("Error parsing XML Configuration", e);
         }
     }

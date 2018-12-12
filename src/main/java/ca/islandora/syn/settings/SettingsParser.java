@@ -94,7 +94,7 @@ public final class SettingsParser {
         } else if (site.getPath() != null) {
             try {
                 publicKeyReader = new FileReader(site.getPath());
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 log.error("Private key file not found.");
             }
         }
@@ -112,7 +112,7 @@ public final class SettingsParser {
                 publicKey = (RSAPublicKey) factory.generatePublic(pubKeySpec);
                 pemReader.close();
                 publicKeyReader.close();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.error("Error loading public key.");
                 return null;
             }
@@ -134,7 +134,7 @@ public final class SettingsParser {
     }
 
     private static Algorithm getHmacAlgorithm(final Site site) {
-        byte[] secret;
+        final byte[] secret;
         byte[] secretRaw = null;
 
         if (!site.getKey().equalsIgnoreCase("")) {
@@ -142,7 +142,7 @@ public final class SettingsParser {
         } else if (site.getPath() != null) {
             try {
                 secretRaw = Files.readAllBytes(Paths.get(site.getPath()));
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 log.error("Unable to get secret from file.", e);
             }
         }
@@ -154,7 +154,7 @@ public final class SettingsParser {
         if (site.getEncoding().equalsIgnoreCase("base64")) {
             try {
                 secret = Base64.getDecoder().decode(secretRaw);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.error("Base64 decode error. Skipping site.", e);
                 return null;
             }
@@ -175,12 +175,19 @@ public final class SettingsParser {
         }
     }
 
-    private static Config getSites(final InputStream settings) {
-        Config sites;
+    /**
+     * Parse a configuration file and return a Config object
+     *
+     * @param settings
+     *        The configuration file stream
+     * @return the config object
+     */
+    public static Config getSites(final InputStream settings) {
+        final Config sites;
 
         try {
             sites = getSitesObject(settings);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Error loading settings file.", e);
             return null;
         }
@@ -193,16 +200,22 @@ public final class SettingsParser {
         return sites;
     }
 
-    public static Map<String, Algorithm> getSiteAlgorithms(final InputStream settings) {
+    /**
+     * Get algorithms for sites
+     *
+     * @param sites
+     *        configuration with sites
+     * @return map of site url (or null for default) and algorithm
+     */
+    public static Map<String, Algorithm> getSiteAlgorithms(final Config sites) {
         final Map<String, Algorithm> algorithms = new HashMap<>();
-        final Config sites = getSites(settings);
         if (sites == null) {
             return algorithms;
         }
 
         boolean defaultSet = false;
 
-        for (Site site : sites.getSites()) {
+        for (final Site site : sites.getSites()) {
             final boolean pathDefined = site.getPath() != null && !site.getPath().equalsIgnoreCase("");
             final boolean keyDefined = site.getKey() != null && !site.getKey().equalsIgnoreCase("");
 
@@ -220,7 +233,7 @@ public final class SettingsParser {
 
             // Check that the algorithm type is valid.
             final AlgorithmType algorithmType = getSiteAlgorithmType(site.getAlgorithm());
-            Algorithm algorithm;
+            final Algorithm algorithm;
             if (algorithmType == AlgorithmType.HMAC) {
                 algorithm = getHmacAlgorithm(site);
             } else if (algorithmType == AlgorithmType.RSA) {
@@ -252,8 +265,14 @@ public final class SettingsParser {
         return algorithms;
     }
 
-    public static Map<String, Token> getSiteStaticTokens(final InputStream settings) {
-        final Config sites = getSites(settings);
+    /**
+     * Get the site static tokens from a set of sites in the configuration
+     *
+     * @param sites
+     *        the configured sites
+     * @return map of token string and token object
+     */
+    public static Map<String, Token> getSiteStaticTokens(final Config sites) {
         if (sites == null) {
             return new HashMap<String, Token>();
         }
@@ -267,11 +286,11 @@ public final class SettingsParser {
     /**
      * Build a list of site urls that allow anonymous GET requests.
      *
-     * @param settings the path to the syn-settings file
+     * @param sites
+     *        a config object with the site information
      * @return list of site urls.
      */
-    public static Map<String, Boolean> getSiteAllowAnonymous(final InputStream settings) {
-        final Config sites = getSites(settings);
+    public static Map<String, Boolean> getSiteAllowAnonymous(final Config sites) {
         if (sites == null) {
             return new HashMap<String, Boolean>();
         }

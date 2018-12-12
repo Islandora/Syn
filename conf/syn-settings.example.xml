@@ -1,4 +1,4 @@
-<config version='1'>
+<config version='1' header="X-Islandora-Roles">
   <!-- 
   Sites can be specified with a Key inline, or with a reference to a key 
   stored in a file. Both are shown in examples below.

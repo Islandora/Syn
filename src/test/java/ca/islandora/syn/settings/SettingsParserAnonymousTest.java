@@ -21,7 +21,7 @@ public class SettingsParserAnonymousTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String, Boolean> anonymous = SettingsParser.getSiteAllowAnonymous(stream);
+        final Map<String, Boolean> anonymous = SettingsParser.getSiteAllowAnonymous(SettingsParser.getSites(stream));
         assertEquals(1, anonymous.size());
         assertEquals(true, anonymous.containsKey("http://test.com"));
         assertEquals(true, anonymous.get("http://test.com"));
@@ -41,7 +41,7 @@ public class SettingsParserAnonymousTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String, Boolean> anonymous = SettingsParser.getSiteAllowAnonymous(stream);
+        final Map<String, Boolean> anonymous = SettingsParser.getSiteAllowAnonymous(SettingsParser.getSites(stream));
         assertEquals(2, anonymous.size());
         assertEquals(true, anonymous.containsKey("http://test.com"));
         assertEquals(true, anonymous.get("http://test.com"));
@@ -64,7 +64,7 @@ public class SettingsParserAnonymousTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String, Boolean> anonymous = SettingsParser.getSiteAllowAnonymous(stream);
+        final Map<String, Boolean> anonymous = SettingsParser.getSiteAllowAnonymous(SettingsParser.getSites(stream));
         assertEquals(3, anonymous.size());
         assertEquals(true, anonymous.containsKey("http://test.com"));
         assertEquals(true, anonymous.get("http://test.com"));

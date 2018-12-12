@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -17,6 +18,8 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
@@ -26,20 +29,22 @@ import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.realm.GenericPrincipal;
+import org.apache.tomcat.util.buf.MessageBytes;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
+import org.apache.tomcat.util.http.MimeHeaders;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-
 import ca.islandora.syn.valve.SynValve;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -65,11 +70,23 @@ public class SynValveTest {
     @Mock
     private Valve nextValve;
 
+    @Mock
+    private org.apache.coyote.Request coyoteRequest;
+
+    @Mock
+    private MimeHeaders mimeHeaders;
+
+    @Mock
+    private MessageBytes messageByte;
+
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Mock
     private Host mockHost;
+
+    @Captor
+    private final ArgumentCaptor<String> mb_argument = ArgumentCaptor.forClass(String.class);
 
     private static ZoneOffset offset;
 
@@ -86,6 +103,11 @@ public class SynValveTest {
         when(container.getRealm()).thenReturn(realm);
         when(request.getContext()).thenReturn(context);
         when(request.getMethod()).thenReturn("POST");
+
+        when(request.getCoyoteRequest()).thenReturn(coyoteRequest);
+        when(coyoteRequest.getMimeHeaders()).thenReturn(mimeHeaders);
+        when(mimeHeaders.addValue(any(String.class))).thenReturn(messageByte);
+
         offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
     }
 
@@ -103,13 +125,14 @@ public class SynValveTest {
     @Test
     public void shouldPassAuth() throws Exception {
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+
         final String host = "http://test.com";
 
         final String token = "Bearer " + JWT
                 .create()
-                .withClaim("uid", 1)
-                .withClaim("name", "adminuser")
-                .withClaim("url", host)
+                .withClaim("webid", 1)
+                .withClaim("sub", "adminuser")
+                .withClaim("iss", host)
                 .withArrayClaim("roles", new String[] {"role1", "role2", "role3"})
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -121,30 +144,38 @@ public class SynValveTest {
                 .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getHeader("Authorization"))
                 .thenReturn(token);
+        setRequestHost(host);
 
         synValve.start();
         synValve.invoke(request, response);
 
-        final InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
         inOrder.verify(request).getHeader("Authorization");
+        inOrder.verify(messageByte).setString(mb_argument.capture());
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(request).setAuthType("SYN");
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("adminuser", argument.getValue().getName());
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
-        assertEquals(5, roles.size());
-        assertTrue(roles.contains("role1"));
-        assertTrue(roles.contains("role2"));
-        assertTrue(roles.contains("role3"));
-        assertTrue(roles.contains("islandora"));
-        assertTrue(roles.contains("http://test.com"));
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("fedoraUser"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(5, headerRoles.size());
+        assertTrue(headerRoles.contains("role1"));
+        assertTrue(headerRoles.contains("role2"));
+        assertTrue(headerRoles.contains("role3"));
+        assertTrue(headerRoles.contains("islandora"));
+        assertTrue(headerRoles.contains("http://test.com"));
+
         assertNull(argument.getValue().getPassword());
     }
 
     @Test
     public void shouldPassAuthToken() throws Exception {
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+
         final String token = "Bearer 1337";
         final SecurityConstraint securityConstraint = new SecurityConstraint();
         securityConstraint.setAuthConstraint(true);
@@ -156,16 +187,23 @@ public class SynValveTest {
         synValve.start();
         synValve.invoke(request, response);
 
-        final InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
         inOrder.verify(request).getHeader("Authorization");
+        inOrder.verify(messageByte).setString(mb_argument.capture());
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(request).setAuthType("SYN");
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("islandoraAdmin", argument.getValue().getName());
+
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
         assertEquals(1, roles.size());
-        assertTrue(roles.contains("islandora"));
+        assertTrue(roles.contains("fedoraUser"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(1, headerRoles.size());
+        assertTrue(headerRoles.contains("islandora"));
+
         assertNull(argument.getValue().getPassword());
     }
 
@@ -220,8 +258,8 @@ public class SynValveTest {
         final String host = "http://test.com";
         final String token = JWT
                 .create()
-                .withClaim("name", "adminuser")
-                .withClaim("url", host)
+                .withClaim("sub", "adminuser")
+                .withClaim("iss", host)
                 .withArrayClaim("roles", new String[] {"role1", "role2", "role3"})
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -246,9 +284,9 @@ public class SynValveTest {
         final String host = "http://test2.com";
         final String token = JWT
                 .create()
-                .withClaim("uid", 1)
-                .withClaim("name", "normalUser")
-                .withClaim("url", host)
+                .withClaim("webid", 1)
+                .withClaim("sub", "normalUser")
+                .withClaim("iss", host)
                 .withArrayClaim("roles", new String[] {})
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -266,17 +304,22 @@ public class SynValveTest {
         synValve.start();
         synValve.invoke(request, response);
 
-        final InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
         inOrder.verify(request).getHeader("Authorization");
+        inOrder.verify(messageByte).setString(mb_argument.capture());
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(request).setAuthType("SYN");
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("normalUser", argument.getValue().getName());
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
-        assertEquals(2, roles.size());
-        assertTrue(roles.contains("islandora"));
-        assertTrue(roles.contains("http://test2.com"));
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("fedoraUser"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(2, headerRoles.size());
+        assertTrue(headerRoles.contains("islandora"));
+        assertTrue(headerRoles.contains("http://test2.com"));
         assertNull(argument.getValue().getPassword());
     }
 
@@ -285,9 +328,9 @@ public class SynValveTest {
         final String host = "http://test-no-match.com";
         final String token = JWT
                 .create()
-                .withClaim("uid", 1)
-                .withClaim("name", "normalUser")
-                .withClaim("url", host)
+                .withClaim("webid", 1)
+                .withClaim("sub", "normalUser")
+                .withClaim("iss", host)
                 .withArrayClaim("roles", new String[] {})
                 .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
                 .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -299,6 +342,7 @@ public class SynValveTest {
                 .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token);
+        setRequestHost(host);
 
         final String testXml = String.join("\n"
                 , "<config version='1'>"
@@ -321,9 +365,9 @@ public class SynValveTest {
         final String host = "http://anon-test.com";
         final String token = JWT
             .create()
-            .withClaim("uid", 1)
-            .withClaim("name", "normalUser")
-            .withClaim("url", host)
+                .withClaim("webid", 1)
+                .withClaim("sub", "normalUser")
+                .withClaim("iss", host)
             .withArrayClaim("roles", new String[] {})
             .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
             .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -350,17 +394,22 @@ public class SynValveTest {
         synValve.start();
         synValve.invoke(request, response);
 
-        final InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
         inOrder.verify(request).getHeader("Authorization");
+        inOrder.verify(messageByte).setString(mb_argument.capture());
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(request).setAuthType("SYN");
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("normalUser", argument.getValue().getName());
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
-        assertEquals(2, roles.size());
-        assertTrue(roles.contains("islandora"));
-        assertTrue(roles.contains(host));
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("fedoraUser"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(2, headerRoles.size());
+        assertTrue(headerRoles.contains("islandora"));
+        assertTrue(headerRoles.contains(host));
         assertNull(argument.getValue().getPassword());
     }
 
@@ -372,13 +421,12 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        setRequestHost(host);
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
         final String testXml = String.join("\n"
-            , "<config version='1'>"
+                , "<config version='1' header='someheader'>"
             , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='true'>"
             , "secretFool"
             , "  </site>"
@@ -389,15 +437,21 @@ public class SynValveTest {
         synValve.start();
         synValve.invoke(request, response);
 
-        final InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
+        inOrder.verify(messageByte).setString(mb_argument.capture());
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("anonymous", argument.getValue().getName());
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
-        assertEquals(2, roles.size());
-        assertTrue(roles.contains("anonymous"));
-        assertTrue(roles.contains("islandora"));
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("fedoraUser"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(2, headerRoles.size());
+        assertTrue(headerRoles.contains("anonymous"));
+        assertTrue(headerRoles.contains("islandora"));
+
         assertNull(argument.getValue().getPassword());
     }
 
@@ -409,13 +463,12 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("HEAD");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        setRequestHost(host);
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
         final String testXml = String.join("\n"
-            , "<config version='1'>"
+                , "<config version='1' header='someheader'>"
             , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='true'>"
             , "secretFool"
             , "  </site>"
@@ -426,15 +479,21 @@ public class SynValveTest {
         synValve.start();
         synValve.invoke(request, response);
 
-        final InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
+        inOrder.verify(messageByte).setString(mb_argument.capture());
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("anonymous", argument.getValue().getName());
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
-        assertEquals(2, roles.size());
-        assertTrue(roles.contains("anonymous"));
-        assertTrue(roles.contains("islandora"));
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("fedoraUser"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(2, headerRoles.size());
+        assertTrue(headerRoles.contains("anonymous"));
+        assertTrue(headerRoles.contains("islandora"));
+
         assertNull(argument.getValue().getPassword());
     }
 
@@ -447,8 +506,7 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        setRequestHost(host);
 
         final String testXml = String.join("\n"
             , "<config version='1'>"
@@ -471,9 +529,9 @@ public class SynValveTest {
         final String host = "http://anon-test.com";
         final String token = JWT
             .create()
-            .withClaim("uid", 1)
-            .withClaim("name", "normalUser")
-            .withClaim("url", host)
+                .withClaim("webid", 1)
+                .withClaim("sub", "normalUser")
+                .withClaim("iss", host)
             .withArrayClaim("roles", new String[] {})
             .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
             .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -485,13 +543,12 @@ public class SynValveTest {
         when(request.getHeader("Authorization"))
             .thenReturn("Bearer " + token);
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        setRequestHost(host);
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
         final String testXml = String.join("\n"
-            , "<config version='1'>"
+                , "<config version='1' header='someheader'>"
             , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='false'>"
             , "secretFool"
             , "  </site>"
@@ -503,15 +560,20 @@ public class SynValveTest {
         synValve.start();
         synValve.invoke(request, response);
 
-        final InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
+        inOrder.verify(messageByte).setString(mb_argument.capture());
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("normalUser", argument.getValue().getName());
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
-        assertEquals(2, roles.size());
-        assertTrue(roles.contains("islandora"));
-        assertTrue(roles.contains(host));
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("fedoraUser"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(2, headerRoles.size());
+        assertTrue(headerRoles.contains("islandora"));
+        assertTrue(headerRoles.contains(host));
         assertNull(argument.getValue().getPassword());
     }
 
@@ -523,13 +585,12 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        setRequestHost(host);
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
         final String testXml = String.join("\n"
-            , "<config version='1'>"
+                , "<config version='1' header='someheader'>"
             , "  <site url='" + host + "' algorithm='HS256' encoding='plain' anonymous='true'>"
             , "secretFool"
             , "  </site>"
@@ -541,15 +602,20 @@ public class SynValveTest {
         synValve.start();
         synValve.invoke(request, response);
 
-        final InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
+        inOrder.verify(messageByte).setString(mb_argument.capture());
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("anonymous", argument.getValue().getName());
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
-        assertEquals(2, roles.size());
-        assertTrue(roles.contains("anonymous"));
-        assertTrue(roles.contains("islandora"));
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("fedoraUser"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(2, headerRoles.size());
+        assertTrue(headerRoles.contains("anonymous"));
+        assertTrue(headerRoles.contains("islandora"));
         assertNull(argument.getValue().getPassword());
     }
 
@@ -561,13 +627,12 @@ public class SynValveTest {
         when(realm.findSecurityConstraints(request, request.getContext()))
             .thenReturn(new SecurityConstraint[] { securityConstraint });
         when(request.getMethod()).thenReturn("GET");
-        when(mockHost.toString()).thenReturn(host);
-        when(request.getHost()).thenReturn(mockHost);
+        setRequestHost(host);
 
         final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
 
         final String testXml = String.join("\n"
-            , "<config version='1'>"
+                , "<config version='1' header='someheader'>"
             , "  <site algorithm='RS256' encoding='plain' anonymous='true' default='true'/>"
             , "</config>"
         );
@@ -576,15 +641,20 @@ public class SynValveTest {
         synValve.start();
         synValve.invoke(request, response);
 
-        final InOrder inOrder = inOrder(request, nextValve);
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
+        inOrder.verify(messageByte).setString(mb_argument.capture());
         inOrder.verify(request).setUserPrincipal(argument.capture());
         inOrder.verify(nextValve).invoke(request, response);
 
         assertEquals("anonymous", argument.getValue().getName());
         final List<String> roles = Arrays.asList(argument.getValue().getRoles());
-        assertEquals(2, roles.size());
-        assertTrue(roles.contains("anonymous"));
-        assertTrue(roles.contains("islandora"));
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("fedoraUser"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(2, headerRoles.size());
+        assertTrue(headerRoles.contains("anonymous"));
+        assertTrue(headerRoles.contains("islandora"));
         assertNull(argument.getValue().getPassword());
     }
 
@@ -593,9 +663,9 @@ public class SynValveTest {
         final String host = "http://test.com";
         final String token = JWT
                 .create()
-                .withClaim("uid", 1)
-                .withClaim("name", "normalUser")
-                .withClaim("url", host)
+                .withClaim("webid", 1)
+                .withClaim("sub", "normalUser")
+                .withClaim("iss", host)
                 .withArrayClaim("roles", new String[] {})
             .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
             .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
@@ -624,9 +694,59 @@ public class SynValveTest {
         verify(response).sendError(401, "Token authentication failed.");
     }
 
+    @Test
+    public void getWithAdminPermissions() throws Exception {
+        final ArgumentCaptor<GenericPrincipal> argument = ArgumentCaptor.forClass(GenericPrincipal.class);
+
+        final String host = "http://test.com";
+
+        final String token = "Bearer " + JWT
+                .create()
+                .withClaim("webid", 1)
+                .withClaim("sub", "adminuser")
+                .withClaim("iss", host)
+                .withArrayClaim("roles", new String[] { "role1", "role2", "fedoraAdmin" })
+                .withIssuedAt(Date.from(LocalDateTime.now().toInstant(offset)))
+                .withExpiresAt(Date.from(LocalDateTime.now().plusHours(2).toInstant(offset)))
+                .sign(Algorithm.HMAC256("secret"));
+
+        final SecurityConstraint securityConstraint = new SecurityConstraint();
+        securityConstraint.setAuthConstraint(true);
+        when(realm.findSecurityConstraints(request, request.getContext()))
+                .thenReturn(new SecurityConstraint[] { securityConstraint });
+        when(request.getHeader("Authorization"))
+                .thenReturn(token);
+        setRequestHost(host);
+
+        synValve.start();
+        synValve.invoke(request, response);
+
+        final InOrder inOrder = inOrder(request, messageByte, nextValve);
+        inOrder.verify(request).getHeader("Authorization");
+        inOrder.verify(messageByte).setString(mb_argument.capture());
+        inOrder.verify(request).setUserPrincipal(argument.capture());
+        inOrder.verify(request).setAuthType("SYN");
+        inOrder.verify(nextValve).invoke(request, response);
+
+        assertEquals("adminuser", argument.getValue().getName());
+        final List<String> roles = Arrays.asList(argument.getValue().getRoles());
+        assertEquals(1, roles.size());
+        assertTrue(roles.contains("fedoraAdmin"));
+
+        final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
+        assertEquals(5, headerRoles.size());
+        assertTrue(headerRoles.contains("role1"));
+        assertTrue(headerRoles.contains("role2"));
+        assertTrue(headerRoles.contains("fedoraAdmin"));
+        assertTrue(headerRoles.contains("islandora"));
+        assertTrue(headerRoles.contains("http://test.com"));
+
+        assertNull(argument.getValue().getPassword());
+    }
+
     private void createSettings(final File settingsFile) throws Exception {
         final String testXml = String.join("\n"
-                , "<config version='1'>"
+                , "<config version='1' header='X-Test'>"
                 , "  <site url='http://test.com' algorithm='HS256' encoding='plain'>"
                 , "secret"
                 , "  </site>"
@@ -639,5 +759,25 @@ public class SynValveTest {
                 , "</config>"
         );
         Files.write(Paths.get(settingsFile.getAbsolutePath()), testXml.getBytes());
+    }
+
+    private void setRequestHost(final String hostname) {
+        final String[] parts = getHostParts(hostname);
+        when(request.getScheme()).thenReturn(parts[0]);
+        when(request.getServerName()).thenReturn(parts[1]);
+        when(request.getServerPort()).thenReturn(Integer.valueOf(parts[2]));
+    }
+
+    private String[] getHostParts(final String hostname) {
+        final Pattern hostPattern = Pattern.compile("^(https?)://([^:/]+)(?::([0-9]+))?");
+        final Matcher matches = hostPattern.matcher(hostname);
+        if (matches.matches()) {
+            final String[] pattern = new String[3];
+            pattern[0] = matches.group(1);
+            pattern[1] = matches.group(2);
+            pattern[2] = (matches.group(3) == null ? "80" : matches.group(3));
+            return pattern;
+        }
+        return null;
     }
 }

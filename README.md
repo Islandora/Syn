@@ -60,6 +60,9 @@ On ubuntu this file can be found at:
 ### Setup Syn Configuration
 Modify the [example configuration](./conf/syn-settings.example.xml) and move it to: `$CATALINA_BASE/conf/syn-settings.xml`.
 
+### Header principals
+Additional roles are passed to Fedora via a HTTP header, this is configured via the `header` attribute to the `<config>` element in the syn-settings.xml.example file. You must also configure Fedora to read this header via its HeaderProvider.
+
 ## Maintainers
 
 * [Jonathan Green](https://github.com/jonathangreen/)
