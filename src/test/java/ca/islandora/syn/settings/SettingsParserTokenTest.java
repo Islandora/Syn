@@ -20,8 +20,16 @@ public class SettingsParserTokenTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Token> tokens = SettingsParser.getSiteStaticTokens(stream);
+        final Map<String, Token> tokens = SettingsParser.getSiteStaticTokens(SettingsParser.getSites(stream));
         assertEquals(0, tokens.size());
+    }
+
+    @Test
+    public void testTokenHeaderName() {
+        final String testXml = String.join("\n", "<config version='1' header='X-Islandora'>", "</config>");
+        final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
+        final Config config = SettingsParser.getSites(stream);
+        assertEquals("X-Islandora", config.getHeader());
     }
 
     @Test
@@ -35,7 +43,7 @@ public class SettingsParserTokenTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Token> tokens = SettingsParser.getSiteStaticTokens(stream);
+        final Map<String, Token> tokens = SettingsParser.getSiteStaticTokens(SettingsParser.getSites(stream));
         final Token token = tokens.get("c00lpazzward");
         assertEquals(1, tokens.size());
         assertEquals("c00lpazzward", token.getToken());
@@ -54,7 +62,7 @@ public class SettingsParserTokenTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Token> tokens = SettingsParser.getSiteStaticTokens(stream);
+        final Map<String, Token> tokens = SettingsParser.getSiteStaticTokens(SettingsParser.getSites(stream));
         final Token token = tokens.get("c00lpazzward");
         assertEquals(1, tokens.size());
         assertEquals("denis", token.getUser());
@@ -71,7 +79,7 @@ public class SettingsParserTokenTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Token> tokens = SettingsParser.getSiteStaticTokens(stream);
+        final Map<String, Token> tokens = SettingsParser.getSiteStaticTokens(SettingsParser.getSites(stream));
         final Token token = tokens.get("c00lpazzward");
         assertEquals(1, tokens.size());
         assertEquals(3, token.getRoles().size());

@@ -5,8 +5,9 @@ import java.util.List;
 
 public class Config {
     private int version = -1;
-    private List<Site> sites = new ArrayList<>();
-    private List<Token> tokens = new ArrayList<>();
+    private String header = "";
+    private final List<Site> sites = new ArrayList<>();
+    private final List<Token> tokens = new ArrayList<>();
 
     public void addSite(final Site site) {
         sites.add(site);
@@ -27,5 +28,13 @@ public class Config {
     }
     public List<Token> getTokens() {
         return tokens;
+    }
+
+    public void setHeader(final String header) {
+        this.header = header;
+    }
+
+    public String getHeader() {
+        return this.header;
     }
 }

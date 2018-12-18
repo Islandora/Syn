@@ -29,7 +29,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(1, algorithms.size());
         assertEquals(true, algorithms.containsKey("http://test.com"));
         assertEquals(algorithm, algorithms.get("http://test.com").getName());
@@ -53,7 +53,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(0, algorithms.size());
     }
 
@@ -68,7 +68,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(1, algorithms.size());
     }
 
@@ -83,7 +83,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(0, algorithms.size());
     }
 
@@ -98,7 +98,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(0, algorithms.size());
     }
 
@@ -113,7 +113,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(1, algorithms.size());
         assertEquals(true, algorithms.containsKey("http://test.com"));
         assertEquals(algorithm, algorithms.get("http://test.com").getName());
@@ -137,7 +137,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(0, algorithms.size());
     }
 
@@ -150,7 +150,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(0, algorithms.size());
     }
 
@@ -163,7 +163,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(0, algorithms.size());
     }
 
@@ -178,7 +178,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(1, algorithms.size());
     }
 
@@ -193,7 +193,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(0, algorithms.size());
     }
 
@@ -212,7 +212,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(1, algorithms.size());
         assertEquals(true, algorithms.containsKey("http://test.com"));
         assertEquals(algorithm, algorithms.get("http://test.com").getName());
@@ -247,7 +247,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(1, algorithms.size());
         assertEquals(true, algorithms.containsKey("http://test.com"));
         assertEquals(algorithm, algorithms.get("http://test.com").getName());
@@ -271,7 +271,7 @@ public class SettingsParserAlgorithmsTest {
         );
 
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(0, algorithms.size());
     }
 
@@ -299,7 +299,7 @@ public class SettingsParserAlgorithmsTest {
             , "</config>"
         );
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(1, algorithms.size());
     }
 
@@ -325,7 +325,7 @@ public class SettingsParserAlgorithmsTest {
             , "</config>"
         );
         final InputStream stream = new ByteArrayInputStream(testXml.getBytes());
-        final Map<String,Algorithm> algorithms = SettingsParser.getSiteAlgorithms(stream);
+        final Map<String, Algorithm> algorithms = SettingsParser.getSiteAlgorithms(SettingsParser.getSites(stream));
         assertEquals(0, algorithms.size());
     }
 }
