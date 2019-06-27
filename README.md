@@ -6,7 +6,7 @@
 
 ## Description
 
-A valve for Tomcat8 that authenticates the JWT tokens created by Islandora in order to provide sessionless Authentication for Fedora4. Named after the Norse goddess [Syn](https://en.wikipedia.org/wiki/Syn_(goddess)).
+A valve for Tomcat8 that authenticates the JWT tokens created by Islandora in order to provide sessionless Authentication for Fedora. Named after the Norse goddess [Syn](https://en.wikipedia.org/wiki/Syn_(goddess)).
 
 ## Building
 
