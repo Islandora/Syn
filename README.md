@@ -8,11 +8,11 @@
 
 A valve for Tomcat8 that authenticates the JWT tokens created by Islandora in order to provide sessionless Authentication for Fedora. Named after the Norse goddess [Syn](https://en.wikipedia.org/wiki/Syn_(goddess)).
 
-## Building
+## Requirements
 
 This project requires Java 8 and can be built with [Gradle](https://gradle.org). To build and test locally, use `./gradlew build`.
 
-## Installing
+## Installation
 
 ### Copy Syn JAR
 Copy the JAR that was built above from `build/libs/islandora-syn-X.X.X-all.jar` and place into `$TOMCAT_HOME/lib` directory. Can be found in Ubuntu at: `/var/lib/tomcat8/lib/`. Note that this JAR is built to contain all the dependancies.
@@ -63,9 +63,22 @@ Modify the [example configuration](./conf/syn-settings.example.xml) and move it 
 ### Header principals
 Additional roles are passed to Fedora via a HTTP header, this is configured via the `header` attribute to the `<config>` element in the syn-settings.xml.example file. You must also configure Fedora to read this header via its HeaderProvider.
 
+## Documentation
+
+Further documentation for this module is available on the [Islandora 8 documentation site](https://islandora-claw.github.io/CLAW/).
+
+## Troubleshooting/Issues
+
+Having problems or solved a problem? Check out the Islandora google groups for a solution.
+
+* [Islandora Group](https://groups.google.com/forum/?hl=en&fromgroups#!forum/islandora) 
+* [Islandora Dev Group](https://groups.google.com/forum/?hl=en&fromgroups#!forum/islandora-dev)
+
 ## Maintainers
 
-* [Jonathan Green](https://github.com/jonathangreen/)
+Current maintainers:
+
+* [Jared Whiklo](https://github.com/whikloj)
 
 ## Development
 
@@ -73,6 +86,14 @@ If you would like to contribute, please get involved by attending our weekly [Te
 
 If you would like to contribute code to the project, you need to be covered by an Islandora Foundation [Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_cla.pdf) or [Corporate Contributor Licencse Agreement](http://islandora.ca/sites/default/files/islandora_ccla.pdf). Please see the [Contributors](http://islandora.ca/resources/contributors) pages on Islandora.ca for more information.
 
-## Licensing
+## Development
 
-MIT
+If you would like to contribute, please get involved by attending our weekly [Tech Call](https://github.com/Islandora-CLAW/CLAW/wiki). We love to hear from you!
+
+If you would like to contribute code to the project, you need to be covered by an Islandora Foundation [Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_cla.pdf) or [Corporate Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_ccla.pdf). Please see the [Contributors](http://islandora.ca/resources/contributors) pages on Islandora.ca for more information.
+
+We recommend using the [claw-playbook](https://github.com/Islandora-Devops/claw-playbook) to get started. If you want to pull down the submodules for development, don't forget to run `git submodule update --init --recursive` after cloning.
+
+## License
+
+[MIT](/LICENSE.txt)
