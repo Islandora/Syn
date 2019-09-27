@@ -4,7 +4,7 @@
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
 [![codecov](https://codecov.io/gh/Islandora-CLAW/Syn/branch/master/graph/badge.svg)](https://codecov.io/gh/Islandora-CLAW/Syn)
 
-## Description
+## Introduction
 
 A valve for Tomcat8 that authenticates the JWT tokens created by Islandora in order to provide sessionless Authentication for Fedora. Named after the Norse goddess [Syn](https://en.wikipedia.org/wiki/Syn_(goddess)).
 
