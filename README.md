@@ -29,8 +29,8 @@ In Ubuntu this file is located at: `/var/lib/tomcat8/conf/context.xml`
 where:
 * ***pathname***: The location of the settings file. Defaults to `$CATALINA_BASE/conf/syn-settings.xml`.
 
-### Enable `security-contraint`
-The valve checks if requested url is under **security contraints**. So, valve will activate only if the Fedora4  *web.xml* file contains something like:
+### Enable `security-constraint`
+The valve checks if requested url is under **security constraints**. So, valve will activate only if the Fedora4  *web.xml* file contains something like:
 
 ```xml
 <security-constraint>
