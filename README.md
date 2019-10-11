@@ -15,7 +15,7 @@ This project requires Java 8 and can be built with [Gradle](https://gradle.org).
 ## Installing
 
 ### Copy Syn JAR
-Copy the JAR that was built above from `build/libs/islandora-syn-X.X.X-all.jar` and place into `$TOMCAT_HOME/lib` directory. Can be found in Ubuntu at: `/var/lib/tomcat8/lib/`. Note that this JAR is built to contain all the dependancies.
+Copy the JAR that was built above from `build/libs/islandora-syn-X.X.X-all.jar` and place into `$TOMCAT_HOME/lib` directory. Can be found in Ubuntu at: `/var/lib/tomcat8/lib/`. Note that this JAR is built to contain all the dependencies.
 
 ### Register Valve
 Now register the valve in Tomcat configuration file.
@@ -30,7 +30,7 @@ where:
 * ***pathname***: The location of the settings file. Defaults to `$CATALINA_BASE/conf/syn-settings.xml`.
 
 ### Enable `security-constraint`
-The valve checks if requested url is under **security constraints**. So, valve will activate only if the Fedora4  *web.xml* file contains something like:
+The valve checks if requested URL is under **security constraints**. So, valve will activate only if the Fedora4  *web.xml* file contains something like:
 
 ```xml
 <security-constraint>
@@ -54,7 +54,7 @@ The valve checks if requested url is under **security constraints**. So, valve w
 </login-config>
 ```
 
-On ubuntu this file can be found at: 
+On Ubuntu this file can be found at: 
 `/var/lib/tomcat8/webapps/fcrepo/WEB-INF/web.xml`
 
 ### Setup Syn Configuration
@@ -71,7 +71,7 @@ Additional roles are passed to Fedora via a HTTP header, this is configured via 
 
 If you would like to contribute, please get involved by attending our weekly [Tech Call](https://github.com/Islandora-CLAW/CLAW/wiki). We love to hear from you!
 
-If you would like to contribute code to the project, you need to be covered by an Islandora Foundation [Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_cla.pdf) or [Corporate Contributor Licencse Agreement](http://islandora.ca/sites/default/files/islandora_ccla.pdf). Please see the [Contributors](http://islandora.ca/resources/contributors) pages on Islandora.ca for more information.
+If you would like to contribute code to the project, you need to be covered by an Islandora Foundation [Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_cla.pdf) or [Corporate Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_ccla.pdf). Please see the [Contributors](http://islandora.ca/resources/contributors) pages on Islandora.ca for more information.
 
 ## Licensing
 
