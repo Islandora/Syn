@@ -1,8 +1,8 @@
 # ![Syn](https://cloud.githubusercontent.com/assets/2371345/23724175/2998ecb0-0422-11e7-9009-aee3f129633f.png) Syn
-[![Build Status](https://travis-ci.com/Islandora-CLAW/Syn.svg?branch=master)](https://travis-ci.com/Islandora-CLAW/Syn)
+[![Build Status](https://travis-ci.com/Islandora/Syn.svg?branch=master)](https://travis-ci.com/Islandora/Syn)
 [![Contribution Guidelines](http://img.shields.io/badge/CONTRIBUTING-Guidelines-blue.svg)](./CONTRIBUTING.md)
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
-[![codecov](https://codecov.io/gh/Islandora-CLAW/Syn/branch/master/graph/badge.svg)](https://codecov.io/gh/Islandora-CLAW/Syn)
+[![codecov](https://codecov.io/gh/Islandora/Syn/branch/master/graph/badge.svg)](https://codecov.io/gh/Islandora/Syn)
 
 ## Introduction
 
@@ -65,7 +65,7 @@ Additional roles are passed to Fedora via a HTTP header, this is configured via 
 
 ## Documentation
 
-Further documentation for this module is available on the [Islandora 8 documentation site](https://islandora-claw.github.io/CLAW/).
+Further documentation for this module is available on the [Islandora 8 documentation site](https://islandora.github.io/documentation/).
 
 ## Troubleshooting/Issues
 
@@ -82,13 +82,13 @@ Current maintainers:
 
 ## Development
 
-If you would like to contribute, please get involved by attending our weekly [Tech Call](https://github.com/Islandora-CLAW/CLAW/wiki). We love to hear from you!
+If you would like to contribute, please get involved by attending our weekly [Tech Call](https://github.com/islandora/documentation/wiki). We love to hear from you!
 
 If you would like to contribute code to the project, you need to be covered by an Islandora Foundation [Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_cla.pdf) or [Corporate Contributor Licencse Agreement](http://islandora.ca/sites/default/files/islandora_ccla.pdf). Please see the [Contributors](http://islandora.ca/resources/contributors) pages on Islandora.ca for more information.
 
 ## Development
 
-If you would like to contribute, please get involved by attending our weekly [Tech Call](https://github.com/Islandora-CLAW/CLAW/wiki). We love to hear from you!
+If you would like to contribute, please get involved by attending our weekly [Tech Call](https://github.com/islandora/documentation/wiki). We love to hear from you!
 
 If you would like to contribute code to the project, you need to be covered by an Islandora Foundation [Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_cla.pdf) or [Corporate Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_ccla.pdf). Please see the [Contributors](http://islandora.ca/resources/contributors) pages on Islandora.ca for more information.
 
