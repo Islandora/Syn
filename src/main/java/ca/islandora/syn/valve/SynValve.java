@@ -46,6 +46,7 @@ public class SynValve extends ValveBase {
     private Map<String, Token> staticTokenMap = null;
     private Map<String, Boolean> anonymousGetMap = null;
     private String roleHeader = null;
+    private boolean isDisabled = false;
 
     @Override
     public void invoke(final Request request, final Response response)
@@ -54,7 +55,7 @@ public class SynValve extends ValveBase {
         final SecurityConstraint[] constraints = this.container.getRealm()
                 .findSecurityConstraints(request, request.getContext());
 
-        if ((constraints == null
+        if (this.isDisabled || (constraints == null
                 && !request.getContext().getPreemptiveAuthentication())
             || !hasAuthConstraint(constraints)) {
             this.getNext().invoke(request, response);
@@ -301,6 +302,7 @@ public class SynValve extends ValveBase {
             this.staticTokenMap = SettingsParser.getSiteStaticTokens(sites);
             this.anonymousGetMap = SettingsParser.getSiteAllowAnonymous(sites);
             this.roleHeader = sites.getHeader();
+            this.isDisabled = sites.getDisabled();
         } catch (final Exception e) {
             throw new LifecycleException("Error parsing XML Configuration", e);
         }

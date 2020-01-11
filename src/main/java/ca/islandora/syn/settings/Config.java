@@ -6,6 +6,7 @@ import java.util.List;
 public class Config {
     private int version = -1;
     private String header = "";
+    private boolean disabled = false;
     private final List<Site> sites = new ArrayList<>();
     private final List<Token> tokens = new ArrayList<>();
 
@@ -36,5 +37,13 @@ public class Config {
 
     public String getHeader() {
         return this.header;
+    }
+
+    public void setDisabled(final String disabled) {
+        this.disabled = Boolean.parseBoolean(disabled);
+    }
+
+    public boolean getDisabled() {
+        return this.disabled;
     }
 }
