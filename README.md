@@ -1,5 +1,5 @@
 # ![Syn](https://cloud.githubusercontent.com/assets/2371345/23724175/2998ecb0-0422-11e7-9009-aee3f129633f.png) Syn
-[![Build Status](https://github.com/islandora/Syn/actions/workflows/build-dev.yml/badge.svg)](https://github.com/Islandora/Syn/actions)
+[![Build Status](https://github.com/islandora/Syn/actions/workflows/build-1.x.yml/badge.svg)](https://github.com/Islandora/Syn/actions)
 [![Contribution Guidelines](http://img.shields.io/badge/CONTRIBUTING-Guidelines-blue.svg)](./CONTRIBUTING.md)
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
 [![codecov](https://codecov.io/gh/Islandora/Syn/branch/main/graphs/badge.svg)](https://codecov.io/gh/Islandora/Syn)
