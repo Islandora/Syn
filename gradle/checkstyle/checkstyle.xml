@@ -12,6 +12,11 @@
     <property name="eachLine" value="true"/>
     <property name="fileExtensions" value="java,css,js,xml"/>
   </module>
+  <!-- Checks for long lines. -->
+  <module name="LineLength">
+    <property name="max" value="120"/>
+    <property name="fileExtensions" value="java"/>
+  </module>
   <!-- License Header module disabled in favor of license-maven-plugin -->
   <module name="TreeWalker">
     <!-- Checks for redundant import statements -->
@@ -20,10 +25,6 @@
     <module name="UnusedImports"/>
     <!-- Check that finds import statements that use the * notation. -->
     <module name="AvoidStarImport"/>
-    <!-- Checks for long lines. -->
-    <module name="LineLength">
-      <property name="max" value="120"/>
-    </module>
     <!-- Write Javadocs for public methods and classes. Keep it short and to the point
          /**
           * @author Joe Developer
