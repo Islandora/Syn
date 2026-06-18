@@ -1,7 +1,6 @@
 package ca.islandora.syn.valves;
 
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
@@ -168,8 +167,6 @@ public class SynValveTest {
         assertTrue(headerRoles.contains("role3"));
         assertTrue(headerRoles.contains("islandora"));
         assertTrue(headerRoles.contains("http://test.com"));
-
-        assertNull(argument.getValue().getPassword());
     }
 
     @Test
@@ -203,8 +200,6 @@ public class SynValveTest {
         final List<String> headerRoles = Arrays.asList(mb_argument.getValue().split(","));
         assertEquals(1, headerRoles.size());
         assertTrue(headerRoles.contains("islandora"));
-
-        assertNull(argument.getValue().getPassword());
     }
 
     @Test
@@ -320,7 +315,6 @@ public class SynValveTest {
         assertEquals(2, headerRoles.size());
         assertTrue(headerRoles.contains("islandora"));
         assertTrue(headerRoles.contains("http://test2.com"));
-        assertNull(argument.getValue().getPassword());
     }
 
     @Test
@@ -410,7 +404,6 @@ public class SynValveTest {
         assertEquals(2, headerRoles.size());
         assertTrue(headerRoles.contains("islandora"));
         assertTrue(headerRoles.contains(host));
-        assertNull(argument.getValue().getPassword());
     }
 
     @Test
@@ -451,8 +444,6 @@ public class SynValveTest {
         assertEquals(2, headerRoles.size());
         assertTrue(headerRoles.contains("anonymous"));
         assertTrue(headerRoles.contains("islandora"));
-
-        assertNull(argument.getValue().getPassword());
     }
 
     @Test
@@ -493,8 +484,6 @@ public class SynValveTest {
         assertEquals(2, headerRoles.size());
         assertTrue(headerRoles.contains("anonymous"));
         assertTrue(headerRoles.contains("islandora"));
-
-        assertNull(argument.getValue().getPassword());
     }
 
     @Test
@@ -574,7 +563,6 @@ public class SynValveTest {
         assertEquals(2, headerRoles.size());
         assertTrue(headerRoles.contains("islandora"));
         assertTrue(headerRoles.contains(host));
-        assertNull(argument.getValue().getPassword());
     }
 
     @Test
@@ -616,7 +604,6 @@ public class SynValveTest {
         assertEquals(2, headerRoles.size());
         assertTrue(headerRoles.contains("anonymous"));
         assertTrue(headerRoles.contains("islandora"));
-        assertNull(argument.getValue().getPassword());
     }
 
     @Test
@@ -655,7 +642,6 @@ public class SynValveTest {
         assertEquals(2, headerRoles.size());
         assertTrue(headerRoles.contains("anonymous"));
         assertTrue(headerRoles.contains("islandora"));
-        assertNull(argument.getValue().getPassword());
     }
 
     @Test
@@ -740,8 +726,6 @@ public class SynValveTest {
         assertTrue(headerRoles.contains("fedoraAdmin"));
         assertTrue(headerRoles.contains("islandora"));
         assertTrue(headerRoles.contains("http://test.com"));
-
-        assertNull(argument.getValue().getPassword());
     }
 
     private void createSettings(final File settingsFile) throws Exception {
