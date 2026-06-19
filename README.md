@@ -80,6 +80,18 @@ Current maintainers:
 
 * [Jared Whiklo](https://github.com/whikloj)
 
+## Support status
+
+This project currently maintains two major release lines:
+
+| Version | Servlet namespace | Target runtime | Support status |
+| --- | --- | --- | --- |
+| `1.x` | `javax.*` | Tomcat 9 | Supported for Tomcat 9 compatibility |
+| `2.x` | `jakarta.*` | Tomcat 10+ | Current development line |
+
+The `2.x` release line is a breaking change because it moves from the legacy Java EE `javax.*` namespace to the Jakarta EE `jakarta.*` namespace required by Tomcat 10 and later. Users running Tomcat 9 should remain on the `1.x` release line.
+
+The `1.x` release line will continue to receive critical fixes, including security fixes when practical, for as long as Tomcat 9.0.x remains supported upstream. Apache has announced that Tomcat 9.0.x support may end after March 31, 2027. After upstream Tomcat 9.0.x support ends, this project expects to end support for the `1.x` release line and continue active support on `2.x`.
 
 ## Development
 
