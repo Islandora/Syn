@@ -8,7 +8,7 @@ plugins {
 }
 
 def projectName = 'islandora-syn'
-def projectVersion = '1.2.0-SNAPSHOT'
+def projectVersion = '2.0.0-SNAPSHOT'
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
