@@ -8,12 +8,12 @@ plugins {
 }
 
 def projectName = 'islandora-syn'
-def projectVersion = '2.0.0-SNAPSHOT'
+def projectVersion = '2.0.1'
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
-def tomcatVersion = '10.1.42'
+def tomcatVersion = project.findProperty('tomcatVersion') ?: '11.0.22'
 
 checkstyle {
     configFile = rootProject.file('gradle/checkstyle/checkstyle.xml')
@@ -39,7 +39,7 @@ dependencies {
 test {
     // Mockito's inline mock maker self-attaches a Byte Buddy agent to the test JVM.
     // JDK 21 disables self-attachment by default, so enable it explicitly.
-    jvmArgs '-Djdk.attach.allowAttachSelf=true', '-XX:+EnableDynamicAgentLoading'
+    jvmArgs '-Djdk.attach.allowAttachSelf=true', '-XX:+EnableDynamicAgentLoading', '-XX:+StartAttachListener'
 }
 
 jacocoTestReport {

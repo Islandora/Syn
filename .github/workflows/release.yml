@@ -1,0 +1,72 @@
+name: Create release
+
+on:
+  pull_request_target:
+    branches:
+      - 2.x
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+concurrency: release-${{ github.event.pull_request.base.ref }}
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          check-latest: true
+          cache: gradle
+
+      - name: Set build parameters
+        id: build-parameters
+        run: |
+          echo "tomcat-version=11.0.22" >> "$GITHUB_OUTPUT"
+
+      - name: Validate release version
+        id: release-version
+        run: |
+          git fetch --tags --force
+          bash scripts/validate-release-version.sh
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+
+      - name: Build
+        run: ./gradlew build -PtomcatVersion="${{ steps.build-parameters.outputs.tomcat-version }}"
+
+      - name: Bump git tag and create GitHub Release
+        run: |
+          git config --global user.name 'islandora-community'
+          git config --global user.email 'islandora-community@users.noreply.github.com'
+
+          git tag "$TAG"
+          git push origin "$TAG"
+
+          plain_jar="build/libs/islandora-syn-${VERSION}.jar"
+          all_jar="build/libs/islandora-syn-${VERSION}-all.jar"
+
+          if [ ! -f "$plain_jar" ] || [ ! -f "$all_jar" ]; then
+            echo "Expected release jars were not found:"
+            echo "  $plain_jar"
+            echo "  $all_jar"
+            exit 1
+          fi
+
+          gh release create "$TAG" --title "$TAG" --generate-notes "$plain_jar" "$all_jar"
+        env:
+          VERSION: ${{ steps.release-version.outputs.version }}
+          TAG: ${{ steps.release-version.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -7,8 +7,32 @@ on:
     branches: [ 2.x ]
 
 jobs:
-  build:
+  release-version:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate release version
+        run: |
+          git fetch --tags --force origin "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+          bash scripts/validate-release-version.sh
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          REQUIRE_VERSION_BUMP: 'true'
+
+  build:
+    name: Tomcat ${{ matrix.tomcat-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tomcat-version:
+          - '10.1.42'
+          - '11.0.22'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -23,10 +47,12 @@ jobs:
       - name: Gradle Check
         run: |
           cd $GITHUB_WORKSPACE/build_dir
-          ./gradlew check
+          ./gradlew check -PtomcatVersion="${{ matrix.tomcat-version }}"
       - name: Jacoco Test
+        if: matrix.tomcat-version == '11.0.22'
         run: |
           cd $GITHUB_WORKSPACE/build_dir
-          ./gradlew jacocoTestReport
+          ./gradlew jacocoTestReport -PtomcatVersion="${{ matrix.tomcat-version }}"
       - name: Codecov
+        if: matrix.tomcat-version == '11.0.22'
         uses: codecov/codecov-action@v7

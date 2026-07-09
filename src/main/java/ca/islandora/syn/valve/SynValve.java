@@ -259,7 +259,7 @@ public class SynValve extends ValveBase {
         mb.setString(String.join(",", roles));
         final List<String> fedoraRole = Arrays
                 .asList(roles.stream().anyMatch(t -> t.equalsIgnoreCase(adminUserRole)) ? "fedoraAdmin" : "fedoraUser");
-        final GenericPrincipal principal = new GenericPrincipal(username, null, fedoraRole);
+        final GenericPrincipal principal = new GenericPrincipal(username, fedoraRole);
         request.setUserPrincipal(principal);
     }
 
